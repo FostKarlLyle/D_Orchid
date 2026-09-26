@@ -1,0 +1,30 @@
+/* Tambahan style khusus versi static (SPA) */
+.demo-banner {
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+  border: 1px dashed #fdba74;
+  color: #9a3412;
+  border-radius: 14px;
+  padding: 10px 16px;
+  font-size: 13.5px;
+  margin-bottom: 18px;
+}
+.demo-banner b { color: #7c2d12; }
+
+.auth-standalone {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(1000px 500px at 10% -10%, #ede9fe 0%, transparent 60%),
+    radial-gradient(800px 400px at 110% 110%, #fce7f3 0%, transparent 55%),
+    #f5f3fb;
+}
+
+.file-note { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+.qty-stepper input { pointer-events: none; }
+
+@media (max-width: 991px) {
+  .auth-hero { display: none; }
+}

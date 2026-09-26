@@ -2,58 +2,78 @@
 
 Web aplikasi manajemen toko anggrek dengan **3 role**: Admin, Tenaga Perawatan Anggrek (Karyawan), dan Customer.
 
-Dibangun dengan **Node.js + Express + EJS + SQLite** (module bawaan Node 22, tanpa native dependency).
+Tersedia **2 versi**:
 
-## Menjalankan
+| Versi | Kebutuhan | Cocok untuk |
+|---|---|---|
+| **Static (utama)** — `index.html` | Tanpa server, buka langsung di browser | Demo UI + alur fitur per role |
+| Server (opsional) — `npm start` | Node.js 22+ | Backend penuh dengan data tersimpan di SQLite |
+
+> **Versi static**: transaksi antara customer & penjual **dinonaktifkan** (checkout & pembuatan pesanan) — sesuai kebutuhan prototipe UI. Fitur lain (login, CRUD, pencarian, katalog `+`, balas ulasan, laporan + unduh CSV) tetap berfungsi. Data demo disimpan di `localStorage` browser.
+
+---
+
+## 🖥️ Cara Buka (versi static — tanpa server)
+
+1. **Download / clone repo ini**
+2. **Klik ganda `index.html`** → terbuka langsung di browser (Chrome/Firefox/Edge)
+   - Tidak perlu `npm install`, tidak perlu server, tidak perlu internet
+3. Login dengan akun demo:
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@d-orchid.id` | `admin123` |
+| Karyawan | `karyawan@d-orchid.id` | `karyawan123` |
+| Customer | `sari@mail.com` | `customer123` |
+
+Reset data demo: buka `index.html` lalu jalankan di DevTools Console:
+`localStorage.removeItem('dorchid_state_v1')` → reload.
+
+### Fitur versi static
+
+- **Auth** — login 3 role, register customer, logout (session di localStorage)
+- **Admin** — Dashboard (ringkasan penjualan, jumlah anggrek per jenis/fase, stok terjual), Data Akun (CRUD 3 role), **Katalog tombol `+`** (pilih data anggrek karyawan → tentukan harga), Pesanan (lihat + update status), Ulasan (balas/hapus), Galeri (CRUD foto), Laporan periode + **unduh CSV**
+- **Karyawan** — Data Akun, Manajemen Data Anggrek (CRUD + foto), lihat/ubah Katalog
+- **Customer** — Register, Katalog + **pencarian nama/jenis/varietas**, Keranjang (demo, tanpa checkout), Pesanan Saya, Galeri, Ulasan (beri/hapus), Data Akun
+- ❌ Dinonaktifkan: checkout customer & pembuatan pesanan admin (prototipe UI saja)
+
+### Struktur versi static
+
+```
+index.html          # entry — klik ganda untuk membuka
+static/
+  vendor/           # Bootstrap + Bootstrap Icons (lokal, jalan offline)
+  store.js          # seed data demo + localStorage CRUD
+  ui.js             # shell layout, komponen, escape, toast
+  views-admin.js    # semua halaman admin
+  views-karyawan.js # semua halaman karyawan
+  views-customer.js # semua halaman customer
+  app.js            # hash router + login/register + boot
+public/css/style.css# tema utama (dipakai kedua versi)
+images/             # foto seed
+```
+
+---
+
+## ⚙️ Versi server (opsional)
 
 ```bash
 npm install
 npm start
 ```
 
-Buka **http://localhost:3000** — data awal (seed) dibuat otomatis saat pertama dijalankan.
+Buka **http://localhost:3000** — data awal (seed) dibuat otomatis. Backend Express 5 + EJS + SQLite bawaan Node 22 (`node:sqlite`), data tersimpan di folder `data/` (gitignored).
 
-### Akun demo
+- Akun demo sama seperti tabel di atas.
+- Reset: hapus folder `data/` lalu `npm start` lagi.
 
-| Role     | Email               | Password     |
-|----------|---------------------|--------------|
-| Admin    | admin@d-orchid.id   | admin123     |
-| Karyawan | karyawan@d-orchid.id| karyawan123  |
-| Customer | sari@mail.com       | customer123  |
-| Customer | budi@mail.com       | customer123  |
-| Customer | citra@mail.com      | customer123  |
+Alur katalog (versi server & static sama):
+1. Karyawan membuat **data anggrek**
+2. Admin → *Katalog Anggrek* → tombol **`+ Tambah ke Katalog`**
+3. Pilih data anggrek (yang sudah ada diberi badge *Sudah di katalog*)
+4. Isi **harga jual** → produk tampil di katalog customer
 
-> Reset data: hapus folder `data/` lalu jalankan `npm start` lagi.
-
-## Fitur
-
-### 1. Admin
-- **Dashboard** — ringkasan penjualan (pendapatan total & bulan ini, jumlah pesanan), jumlah anggrek per **jenis** & per **fase pertumbuhan**, serta stok anggrek yang tersedia untuk dijual.
-- **Data Akun** — CRUD akun Admin, Karyawan, dan Customer (tab per role + pencarian).
-- **Katalog Anggrek** — tombol **`+`** untuk memilih **data anggrek buatan karyawan** → tentukan harga → masuk katalog. Juga ubah harga, nonaktifkan, dan hapus dari katalog.
-- **Pesanan** — buat pesanan manual, lihat semua pesanan (filter status), detail item, dan update status (`menunggu → diproses → selesai / dibatalkan`). Pembatalan otomatis mengembalikan stok.
-- **Ulasan** — lihat, balas, dan hapus ulasan customer.
-- **Galeri** — CRUD foto galeri (upload gambar).
-- **Laporan Penjualan** — filter periode (tanggal awal–akhir), ringkasan pendapatan, dan **unduh CSV**.
-- **Log Out**.
-
-### 2. Tenaga Perawatan Anggrek (Karyawan)
-- **Login** & **Data Akun** (lihat/ubah akun sendiri).
-- **Manajemen Data Anggrek** — CRUD data anggrek: nama, jenis, varietas, fase pertumbuhan, stok, deskripsi, foto. Data ini menjadi kandidat produk katalog pilihan Admin.
-- **Katalog** — lihat katalog, ubah harga & status produk.
-- **Log Out**.
-
-### 3. Customer
-- **Register** & **Login**.
-- **Data Akun** — lihat/ubah profil sendiri.
-- **Katalog** — lihat produk aktif + **pencarian nama / jenis / varietas**, tombol tambah ke keranjang.
-- **Keranjang belanja sementara** (localStorage) → checkout membuat pesanan; validasi stok di server.
-- **Pesanan Saya** — riwayat + status pesanan.
-- **Galeri** — lihat foto anggrek.
-- **Ulasan** — beri rating + komentar, lihat balasan admin, hapus ulasan sendiri.
-- **Log Out**.
-
-## Struktur Proyek
+## Struktur proyek (versi server)
 
 ```
 server.js            # bootstrap Express, session, static, error handler
@@ -70,13 +90,5 @@ src/
     customer.js      # akun, katalog+search, keranjang/checkout, pesanan, galeri, ulasan
 views/               # template EJS (partials + halaman per role)
 public/              # css, js, uploads
-images/              # gambar seed
 data/                # file database (gitignored)
 ```
-
-## Alur katalog (sorotan)
-
-1. Karyawan membuat **data anggrek** di *Manajemen Data Anggrek*.
-2. Admin membuka *Katalog Anggrek* → menekan tombol **`+ Tambah ke Katalog`**.
-3. Muncul daftar data anggrek dari karyawan — yang sudah di katalog dimunculkan badge *Sudah di katalog*.
-4. Admin menekan **Pilih**, memasukkan **harga jual**, lalu produk tampil di katalog customer.
