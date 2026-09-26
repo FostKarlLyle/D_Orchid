@@ -1,0 +1,143 @@
+<%- include('../partials/head', { title: title, nav: 'admin-nav', active: 'pesanan' }) %>
+
+<div class="page-head">
+  <div>
+    <h1>Buat Pesanan</h1>
+    <div class="sub"><a class="link-plain" href="/admin/pesanan"><i class="bi bi-arrow-left"></i> Kembali ke daftar pesanan</a></div>
+  </div>
+</div>
+
+<form method="post" action="/admin/pesanan/tambah" id="orderForm">
+  <div class="grid-2-1">
+    <div class="panel panel-pad">
+      <div class="panel-title"><i class="bi bi-cart-plus"></i> Item Pesanan</div>
+      <div class="panel-sub">Pilih produk katalog dan jumlahnya</div>
+
+      <div id="itemRows"></div>
+
+      <button type="button" class="btn-soft mt-2" id="addRowBtn">
+        <i class="bi bi-plus-lg"></i> Tambah Item
+      </button>
+
+      <div class="d-flex justify-content-between align-items-center mt-4 pt-3" style="border-top:2px dashed #e4dafb">
+        <div class="fw-bold">Total</div>
+        <div class="price-tag" style="font-size:20px" id="totalDisplay">Rp 0</div>
+      </div>
+    </div>
+
+    <div class="panel panel-pad">
+      <div class="panel-title"><i class="bi bi-person"></i> Customer & Catatan</div>
+      <div class="panel-sub">Pesanan akan langsung berstatus <b>Menunggu</b></div>
+
+      <div class="mb-3">
+        <label class="form-label">Customer *</label>
+        <select name="customer_id" class="form-select" required>
+          <option value="">— Pilih customer —</option>
+          <% customers.forEach(function (c) { %>
+            <option value="<%= c.id %>"><%= c.name %> (<%= c.email %>)</option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Catatan</label>
+        <textarea name="note" class="form-control" rows="3" placeholder="Catatan opsional untuk pesanan ini..."></textarea>
+      </div>
+      <div class="demo-box">
+        <i class="bi bi-info-circle me-1"></i>
+        Stok anggrek akan otomatis berkurang mengikuti jumlah pesanan.
+      </div>
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn-accent" type="submit"><i class="bi bi-check2-circle me-1"></i> Simpan Pesanan</button>
+        <a href="/admin/pesanan" class="btn-soft">Batal</a>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+  window.CATALOG = <%- JSON.stringify(catalog) %>;
+</script>
+<script>
+(function () {
+  var container = document.getElementById('itemRows');
+  var addBtn = document.getElementById('addRowBtn');
+  var totalEl = document.getElementById('totalDisplay');
+  var rowIndex = 0;
+
+  function fmt(n) {
+    return 'Rp ' + Number(n).toLocaleString('id-ID');
+  }
+
+  function recalc() {
+    var total = 0;
+    container.querySelectorAll('.item-row').forEach(function (row) {
+      var sel = row.querySelector('select');
+      var qty = parseInt(row.querySelector('input').value, 10) || 0;
+      var opt = sel.options[sel.selectedIndex];
+      var price = opt && opt.value ? Number(opt.dataset.price) : 0;
+      total += price * qty;
+    });
+    totalEl.textContent = fmt(total);
+  }
+
+  function addRow() {
+    var i = rowIndex++;
+    var div = document.createElement('div');
+    div.className = 'item-row d-flex gap-2 mb-2 align-items-center';
+    div.innerHTML =
+      '<select name="catalog_id[]" class="form-select" required data-idx="' + i + '">' +
+      '<option value="">— Pilih produk katalog —</option>' +
+      window.CATALOG.map(function (c) {
+        return '<option value="' + c.id + '" data-price="' + c.price + '" data-stock="' + c.stock + '">' +
+          c.name + ' — ' + fmt(c.price) + ' (stok ' + c.stock + ')</option>';
+      }).join('') +
+      '</select>' +
+      '<input type="number" name="qty[]" class="form-control" style="max-width:96px" min="1" value="1" required />' +
+      '<button type="button" class="btn-icon b-del" title="Hapus baris"><i class="bi bi-x-lg"></i></button>';
+    div.querySelector('select').addEventListener('change', function () {
+      var opt = this.options[this.selectedIndex];
+      if (opt && opt.value) {
+        var stock = Number(opt.dataset.stock);
+        var qtyInput = div.querySelector('input');
+        qtyInput.max = stock;
+        if (Number(qtyInput.value) > stock) qtyInput.value = stock;
+      }
+      recalc();
+    });
+    div.querySelector('input').addEventListener('input', recalc);
+    div.querySelector('button').addEventListener('click', function () {
+      div.remove();
+      recalc();
+    });
+    container.appendChild(div);
+    recalc();
+  }
+
+  addBtn.addEventListener('click', addRow);
+  if (window.CATALOG.length) addRow();
+
+  document.getElementById('orderForm').addEventListener('submit', function (e) {
+    var rows = container.querySelectorAll('.item-row');
+    var valid = false;
+    rows.forEach(function (row) {
+      var sel = row.querySelector('select');
+      var qty = parseInt(row.querySelector('input').value, 10) || 0;
+      if (sel.value && qty > 0) {
+        valid = true;
+        var opt = sel.options[sel.selectedIndex];
+        var stock = Number(opt.dataset.stock);
+        if (qty > stock) {
+          e.preventDefault();
+          alert('Stok "' + opt.textContent.split(' — ')[0] + '" tidak mencukupi (tersisa ' + stock + ').');
+        }
+      }
+    });
+    if (!valid) {
+      e.preventDefault();
+      alert('Pesanan minimal berisi 1 item.');
+    }
+  });
+})();
+</script>
+
+<%- include('../partials/foot') %>

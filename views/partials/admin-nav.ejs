@@ -1,0 +1,28 @@
+<nav class="side-nav">
+  <a class="side-link <%= active === 'dashboard' ? 'active' : '' %>" href="/admin">
+    <i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span>
+  </a>
+  <div class="side-label">Manajemen</div>
+  <a class="side-link <%= active === 'akun' ? 'active' : '' %>" href="/admin/akun">
+    <i class="bi bi-people-fill"></i><span>Data Akun</span>
+  </a>
+  <a class="side-link <%= active === 'katalog' ? 'active' : '' %>" href="/admin/katalog">
+    <i class="bi bi-shop"></i><span>Katalog Anggrek</span>
+  </a>
+  <a class="side-link <%= active === 'pesanan' ? 'active' : '' %>" href="/admin/pesanan">
+    <i class="bi bi-bag-check-fill"></i><span>Pesanan</span>
+    <% if (typeof pendingCount !== 'undefined' && pendingCount > 0) { %>
+      <span class="side-count"><%= pendingCount %></span>
+    <% } %>
+  </a>
+  <a class="side-link <%= active === 'ulasan' ? 'active' : '' %>" href="/admin/ulasan">
+    <i class="bi bi-star-fill"></i><span>Ulasan</span>
+  </a>
+  <a class="side-link <%= active === 'galeri' ? 'active' : '' %>" href="/admin/galeri">
+    <i class="bi bi-images"></i><span>Galeri</span>
+  </a>
+  <div class="side-label">Analitik</div>
+  <a class="side-link <%= active === 'laporan' ? 'active' : '' %>" href="/admin/laporan">
+    <i class="bi bi-file-earmark-bar-graph-fill"></i><span>Laporan Penjualan</span>
+  </a>
+</nav>

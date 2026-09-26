@@ -1,0 +1,65 @@
+<%- include('../partials/head', { title: title, nav: 'karyawan-nav', active: 'akun' }) %>
+
+<div class="page-head">
+  <div>
+    <h1>Data Akun</h1>
+    <div class="sub">Lihat dan ubah data akun kamu</div>
+  </div>
+</div>
+
+<div class="grid-2-1">
+  <div class="panel panel-pad">
+    <div class="panel-title"><i class="bi bi-person-badge"></i> Profil Saya</div>
+    <div class="panel-sub">Role: <span class="badge bg-primary">Karyawan / Tenaga Perawatan Anggrek</span></div>
+    <form method="post" action="/karyawan/akun" class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Nama Lengkap *</label>
+        <input type="text" name="name" class="form-control" required value="<%= akun.name %>" />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Email *</label>
+        <input type="email" name="email" class="form-control" required value="<%= akun.email %>" />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">No. HP</label>
+        <input type="text" name="phone" class="form-control" value="<%= akun.phone %>" placeholder="08xx-xxxx-xxxx" />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Ganti Password <span class="text-muted-2">(opsional)</span></label>
+        <input type="password" name="password" class="form-control" minlength="6" placeholder="Kosongkan jika tidak diganti" />
+      </div>
+      <div class="col-12">
+        <label class="form-label">Alamat</label>
+        <input type="text" name="address" class="form-control" value="<%= akun.address %>" placeholder="Alamat" />
+      </div>
+      <div class="col-12">
+        <button class="btn-accent" type="submit"><i class="bi bi-check2-circle me-1"></i> Simpan Perubahan</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="panel panel-pad">
+    <div class="panel-title"><i class="bi bi-bar-chart-fill"></i> Aktivitas Saya</div>
+    <div class="panel-sub">Ringkasan data yang kamu kelola</div>
+    <div class="stat-card mb-3" style="box-shadow:none;border-style:dashed">
+      <div class="stat-icon i-violet"><i class="bi bi-flower2"></i></div>
+      <div>
+        <div class="stat-label">Data Anggrek Dibuat</div>
+        <div class="stat-value"><%= stats.orchids %></div>
+      </div>
+    </div>
+    <div class="stat-card mb-3" style="box-shadow:none;border-style:dashed">
+      <div class="stat-icon i-pink"><i class="bi bi-shop"></i></div>
+      <div>
+        <div class="stat-label">Masuk Katalog</div>
+        <div class="stat-value"><%= stats.inCatalog %></div>
+      </div>
+    </div>
+    <div class="demo-box mb-0">
+      <i class="bi bi-info-circle me-1"></i>
+      Data anggrek yang kamu buat bisa dipilih <b>Admin</b> untuk dijadikan produk katalog.
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

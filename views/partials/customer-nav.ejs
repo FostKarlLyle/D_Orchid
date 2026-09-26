@@ -1,0 +1,22 @@
+<nav class="side-nav">
+  <a class="side-link <%= active === 'katalog' ? 'active' : '' %>" href="/customer/katalog">
+    <i class="bi bi-flower1"></i><span>Katalog Anggrek</span>
+  </a>
+  <a class="side-link <%= active === 'keranjang' ? 'active' : '' %>" href="/customer/keranjang">
+    <i class="bi bi-cart3"></i><span>Keranjang</span>
+    <span class="side-count cart-badge" style="display:none">0</span>
+  </a>
+  <a class="side-link <%= active === 'pesanan' ? 'active' : '' %>" href="/customer/pesanan">
+    <i class="bi bi-bag-check-fill"></i><span>Pesanan Saya</span>
+  </a>
+  <a class="side-link <%= active === 'galeri' ? 'active' : '' %>" href="/customer/galeri">
+    <i class="bi bi-images"></i><span>Galeri</span>
+  </a>
+  <a class="side-link <%= active === 'ulasan' ? 'active' : '' %>" href="/customer/ulasan">
+    <i class="bi bi-star-fill"></i><span>Ulasan</span>
+  </a>
+  <div class="side-label">Akun</div>
+  <a class="side-link <%= active === 'akun' ? 'active' : '' %>" href="/customer/akun">
+    <i class="bi bi-person-circle"></i><span>Data Akun</span>
+  </a>
+</nav>

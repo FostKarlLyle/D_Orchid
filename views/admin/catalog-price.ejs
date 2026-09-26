@@ -1,0 +1,56 @@
+<%- include('../partials/head', { title: title, nav: 'admin-nav', active: 'katalog' }) %>
+
+<div class="page-head">
+  <div>
+    <h1>Tentukan Harga Jual</h1>
+    <div class="sub">Anggrek terpilih akan dimasukkan ke katalog produk</div>
+  </div>
+  <a href="/admin/katalog/tambah" class="btn-soft"><i class="bi bi-arrow-left me-1"></i> Kembali memilih</a>
+</div>
+
+<div class="grid-2-1">
+  <div class="panel panel-pad">
+    <div class="panel-title"><i class="bi bi-tag-fill"></i> Formulir Katalog</div>
+    <div class="panel-sub">Harga menjadi harga jual ke customer</div>
+    <form method="post" action="/admin/katalog/tambah/<%= orchid.id %>">
+      <div class="mb-3">
+        <label class="form-label">Harga Jual (Rp) *</label>
+        <div class="input-group">
+          <span class="input-group-text">Rp</span>
+          <input type="number" name="price" class="form-control" min="1" step="1000" required
+                 placeholder="contoh: 250000" autofocus />
+        </div>
+        <div class="text-muted-2 mt-1">Masukkan harga dalam rupiah tanpa titik/koma.</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Status</label>
+        <input class="form-control" value="Aktif — langsung tampil di katalog customer" disabled />
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn-accent" type="submit"><i class="bi bi-cart-plus me-1"></i> Tambahkan ke Katalog</button>
+        <a href="/admin/katalog/tambah" class="btn-soft">Batal</a>
+      </div>
+    </form>
+  </div>
+
+  <div class="panel panel-pad">
+    <div class="panel-title"><i class="bi bi-flower1"></i> Data Anggrek Terpilih</div>
+    <div class="panel-sub">Dibuat oleh tenaga perawatan</div>
+    <% if (orchid.image) { %>
+      <img src="<%= orchid.image %>" alt="" style="width:100%;height:200px;object-fit:cover;border-radius:14px;margin-bottom:14px" />
+    <% } %>
+    <h5 style="font-weight:800;margin-bottom:8px"><%= orchid.name %></h5>
+    <div class="mb-2"><span class="badge badge-fase <%= FASE_BADGE[orchid.fase] %>"><%= orchid.fase %></span></div>
+    <table class="table table-sm mb-0" style="font-size:13.5px">
+      <tr><td class="text-muted-2">Jenis</td><td class="text-end"><b><%= orchid.jenis %></b></td></tr>
+      <tr><td class="text-muted-2">Varietas</td><td class="text-end"><b><%= orchid.varietas || '-' %></b></td></tr>
+      <tr><td class="text-muted-2">Stok</td><td class="text-end"><b><%= orchid.stock %> pot</b></td></tr>
+      <tr><td class="text-muted-2">Terdaftar</td><td class="text-end"><b><%= formatDateOnly(orchid.created_at) %></b></td></tr>
+    </table>
+    <% if (orchid.description) { %>
+      <div class="text-muted-2 mt-3"><%= orchid.description %></div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

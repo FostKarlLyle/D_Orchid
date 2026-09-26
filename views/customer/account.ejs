@@ -1,0 +1,68 @@
+<%- include('../partials/head', { title: title, nav: 'customer-nav', active: 'akun' }) %>
+
+<div class="page-head">
+  <div>
+    <h1>Data Akun</h1>
+    <div class="sub">Lihat dan ubah data akun kamu</div>
+  </div>
+</div>
+
+<div class="grid-2-1">
+  <div class="panel panel-pad">
+    <div class="panel-title"><i class="bi bi-person-badge"></i> Profil Saya</div>
+    <div class="panel-sub">Role: <span class="badge bg-success">Customer</span> · terdaftar <%= formatDateOnly(akun.created_at) %></div>
+    <form method="post" action="/customer/akun" class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Nama Lengkap *</label>
+        <input type="text" name="name" class="form-control" required value="<%= akun.name %>" />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Email *</label>
+        <input type="email" name="email" class="form-control" required value="<%= akun.email %>" />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">No. HP</label>
+        <input type="text" name="phone" class="form-control" value="<%= akun.phone %>" placeholder="08xx-xxxx-xxxx" />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Ganti Password <span class="text-muted-2">(opsional)</span></label>
+        <input type="password" name="password" class="form-control" minlength="6" placeholder="Kosongkan jika tidak diganti" />
+      </div>
+      <div class="col-12">
+        <label class="form-label">Alamat Pengiriman</label>
+        <input type="text" name="address" class="form-control" value="<%= akun.address %>" placeholder="Alamat lengkap" />
+      </div>
+      <div class="col-12">
+        <button class="btn-accent" type="submit"><i class="bi bi-check2-circle me-1"></i> Simpan Perubahan</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="panel panel-pad">
+    <div class="panel-title"><i class="bi bi-graph-up"></i> Aktivitas Belanja</div>
+    <div class="panel-sub">Ringkasan akun kamu</div>
+    <div class="stat-card mb-3" style="box-shadow:none;border-style:dashed">
+      <div class="stat-icon i-violet"><i class="bi bi-bag-check"></i></div>
+      <div>
+        <div class="stat-label">Total Pesanan</div>
+        <div class="stat-value"><%= stats.orders %></div>
+      </div>
+    </div>
+    <div class="stat-card mb-3" style="box-shadow:none;border-style:dashed">
+      <div class="stat-icon i-pink"><i class="bi bi-cash-stack"></i></div>
+      <div>
+        <div class="stat-label">Total Belanja</div>
+        <div class="stat-value" style="font-size:18px"><%= formatRp(stats.spent) %></div>
+      </div>
+    </div>
+    <div class="stat-card mb-0" style="box-shadow:none;border-style:dashed">
+      <div class="stat-icon i-teal"><i class="bi bi-star-fill"></i></div>
+      <div>
+        <div class="stat-label">Ulasan Diberikan</div>
+        <div class="stat-value"><%= stats.reviews %></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

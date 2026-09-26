@@ -1,0 +1,83 @@
+<%- include('../partials/head', { title: title, nav: 'admin-nav', active: 'katalog' }) %>
+
+<div class="page-head">
+  <div>
+    <h1>Pilih Data Anggrek</h1>
+    <div class="sub">Data anggrek dibuat oleh tenaga perawatan (karyawan) — pilih mana yang mau dijual di katalog</div>
+  </div>
+  <a href="/admin/katalog" class="btn-soft"><i class="bi bi-arrow-left me-1"></i> Kembali ke Katalog</a>
+</div>
+
+<div class="panel" style="margin-bottom:18px">
+  <div class="panel-pad pb-0 d-flex flex-wrap gap-3 justify-content-between align-items-center">
+    <div class="text-muted-2">
+      <i class="bi bi-lightbulb text-warning me-1"></i>
+      Anggrek yang <b>sudah ada di katalog</b> ditandai badge <span class="badge bg-success">Sudah di katalog</span> dan tidak bisa dipilih ulang.
+    </div>
+    <form class="d-flex gap-2 mb-3" method="get" action="/admin/katalog/tambah">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input class="form-control" type="text" name="q" value="<%= q %>" placeholder="Cari nama / jenis / varietas..." />
+      </div>
+      <button class="btn-soft" type="submit">Cari</button>
+      <% if (q) { %><a href="/admin/katalog/tambah" class="btn-soft">Reset</a><% } %>
+    </form>
+  </div>
+
+  <div class="table-responsive mt-3">
+    <table class="table table-them align-middle">
+      <thead>
+        <tr>
+          <th>Data Anggrek</th>
+          <th>Jenis</th>
+          <th>Varietas</th>
+          <th>Fase</th>
+          <th>Stok</th>
+          <th>Dibuat Oleh</th>
+          <th class="text-end">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!orchids.length) { %>
+          <tr><td colspan="7">
+            <div class="empty-state">
+              <i class="bi bi-flower2"></i>
+              <div class="title">Belum ada data anggrek</div>
+              Minta karyawan membuat data anggrek terlebih dahulu.
+            </div>
+          </td></tr>
+        <% } %>
+        <% orchids.forEach(function (o) { %>
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <% if (o.image) { %><img src="<%= o.image %>" class="cell-thumb" alt="" /><% } else { %><div class="cell-thumb empty">🌱</div><% } %>
+                <div>
+                  <div class="cell-title"><%= o.name %></div>
+                  <div class="cell-sub"><%= o.description ? (o.description.length > 60 ? o.description.slice(0, 60) + '…' : o.description) : 'Tanpa deskripsi' %></div>
+                </div>
+              </div>
+            </td>
+            <td><%= o.jenis %></td>
+            <td><%= o.varietas || '-' %></td>
+            <td><span class="badge badge-fase <%= FASE_BADGE[o.fase] %>"><%= o.fase %></span></td>
+            <td><b><%= o.stock %></b> pot</td>
+            <td class="cell-sub"><%= o.creator_name || '-' %><br><%= formatDateOnly(o.created_at) %></td>
+            <td class="text-end">
+              <% if (o.catalog_id) { %>
+                <span class="badge bg-success"><i class="bi bi-check-lg"></i> Sudah di katalog</span>
+                <a class="btn-icon b-eye" href="/admin/katalog" title="Lihat katalog"><i class="bi bi-eye"></i></a>
+              <% } else { %>
+                <a class="btn-accent" href="/admin/katalog/tambah/<%= o.id %>" style="padding:8px 16px;font-size:13.5px">
+                  <i class="bi bi-plus-lg"></i> Pilih
+                </a>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

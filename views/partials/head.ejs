@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= title %> · D'Orchid</title>
+  <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/vendor/icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/public/css/style.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-badge">🌸</div>
+        <div>
+          <div class="brand-name">D'Orchid</div>
+          <div class="brand-sub">Orchid Shop</div>
+        </div>
+      </div>
+      <%- include(nav, { active: active }) %>
+      <div class="sidebar-foot">
+        <i class="bi bi-flower1"></i> © 2026 D'Orchid
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="icon-btn" id="sidebarToggle" aria-label="Buka menu"><i class="bi bi-list"></i></button>
+        <div class="topbar-title"><%= title %></div>
+        <div class="topbar-user">
+          <div class="topbar-meta">
+            <div class="topbar-name"><%= user.name %></div>
+            <div class="topbar-role"><%= user.role === 'admin' ? 'Administrator' : (user.role === 'karyawan' ? 'Karyawan' : 'Customer') %></div>
+          </div>
+          <div class="avatar"><%= user.name.trim().charAt(0).toUpperCase() %></div>
+          <form method="post" action="/logout" class="m-0">
+            <button class="btn-logout" title="Log Out" type="submit"><i class="bi bi-box-arrow-right"></i></button>
+          </form>
+        </div>
+      </header>
+
+      <main class="content">
+        <%- include('flash') %>

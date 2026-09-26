@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Register · D'Orchid</title>
+  <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/vendor/icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/public/css/style.css" />
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="auth-hero" style="background-image:url('/public/uploads/hero-login.jpg')">
+      <div class="auth-hero-inner">
+        <div class="auth-brand">
+          <div class="brand-badge" style="width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.15);display:grid;place-items:center;font-size:22px">🌸</div>
+          D'Orchid
+        </div>
+        <h1>Gabung dan mulai<br>koleksi anggrekmu.</h1>
+        <p>Buat akun customer untuk menjelajahi katalog, memesan, dan memberi ulasan.</p>
+      </div>
+    </div>
+
+    <div class="auth-form-side">
+      <div class="auth-card">
+        <h2>Daftar Akun 🌱</h2>
+        <div class="hint">Registrasi khusus customer.</div>
+
+        <% if (flash) { %>
+          <div class="alert alert-<%= flash.type %> alert-dismissible fade show app-alert" role="alert">
+            <%= flash.msg %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        <% } %>
+
+        <form method="post" action="/register">
+          <div class="mb-3">
+            <label class="form-label">Nama Lengkap</label>
+            <input type="text" name="name" class="form-control" placeholder="Nama kamu" required autofocus />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-control" placeholder="nama@email.com" required />
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-sm-6">
+              <label class="form-label">No. HP</label>
+              <input type="text" name="phone" class="form-control" placeholder="08xx-xxxx-xxxx" />
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label">Password</label>
+              <input type="password" name="password" class="form-control" placeholder="min. 6 karakter" required />
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Alamat</label>
+            <input type="text" name="address" class="form-control" placeholder="Alamat pengiriman" />
+          </div>
+          <div class="mb-4">
+            <label class="form-label">Konfirmasi Password</label>
+            <input type="password" name="confirm" class="form-control" placeholder="Ulangi password" required />
+          </div>
+          <button class="btn-accent w-100" type="submit">
+            <i class="bi bi-person-plus me-1"></i> Daftar Sekarang
+          </button>
+        </form>
+
+        <div class="auth-switch">
+          Sudah punya akun? <a href="/login" class="link-plain">Login di sini</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-app" id="toastApp"></div>
+  <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="/public/js/app.js"></script>
+</body>
+</html>

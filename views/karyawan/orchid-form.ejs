@@ -1,0 +1,76 @@
+<%- include('../partials/head', { title: title, nav: 'karyawan-nav', active: 'anggrek' }) %>
+
+<div class="page-head">
+  <div>
+    <h1><%= orchid ? 'Ubah' : 'Buat' %> Data Anggrek</h1>
+    <div class="sub"><a class="link-plain" href="/karyawan/anggrek"><i class="bi bi-arrow-left"></i> Kembali ke data anggrek</a></div>
+  </div>
+</div>
+
+<div class="panel panel-pad" style="max-width:820px">
+  <form method="post" action="<%= orchid ? '/karyawan/anggrek/' + orchid.id + '/ubah' : '/karyawan/anggrek/tambah' %>"
+        enctype="multipart/form-data">
+    <div class="row g-3">
+      <div class="col-md-7">
+        <label class="form-label">Nama Anggrek *</label>
+        <input type="text" name="name" class="form-control" required value="<%= orchid ? orchid.name : '' %>"
+               placeholder="contoh: Dendrobium Violet Queen" />
+      </div>
+      <div class="col-md-5">
+        <label class="form-label">Jenis *</label>
+        <select name="jenis" class="form-select" required>
+          <option value="">— Pilih jenis —</option>
+          <% JENIS_LIST.forEach(function (j) { %>
+            <option value="<%= j %>" <%= orchid && orchid.jenis === j ? 'selected' : '' %>><%= j %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label">Varietas</label>
+        <input type="text" name="varietas" class="form-control" value="<%= orchid ? orchid.varietas : '' %>"
+               placeholder="contoh: Violet Queen" />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Fase Pertumbuhan *</label>
+        <select name="fase" class="form-select" required>
+          <option value="">— Pilih fase —</option>
+          <% FASE_LIST.forEach(function (f) { %>
+            <option value="<%= f %>" <%= orchid && orchid.fase === f ? 'selected' : '' %>><%= f %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Stok (pot) *</label>
+        <input type="number" name="stock" class="form-control" min="0" required
+               value="<%= orchid ? orchid.stock : '' %>" placeholder="0" />
+      </div>
+      <div class="col-12">
+        <label class="form-label">Deskripsi</label>
+        <textarea name="description" class="form-control" rows="4"
+                  placeholder="Deskripsi kondisi, karakter bunga, tips perawatan..."><%= orchid ? orchid.description : '' %></textarea>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Foto Anggrek <%= orchid ? '(kosongkan untuk mempertahankan foto lama)' : '' %></label>
+        <input type="file" name="image" class="form-control" accept=".jpg,.jpeg,.png,.webp,.gif" />
+        <div class="text-muted-2 mt-1">Format: jpg, jpeg, png, webp, gif — maks 5 MB.</div>
+      </div>
+      <% if (orchid && orchid.image) { %>
+        <div class="col-12">
+          <div class="d-flex align-items-center gap-3">
+            <img src="<%= orchid.image %>" alt="" style="width:120px;height:120px;object-fit:cover;border-radius:14px;border:1px solid var(--line)" />
+            <label class="d-flex align-items-center gap-2 text-muted-2" style="font-size:13.5px">
+              <input type="checkbox" name="remove_image" value="1" /> Hapus foto ini
+            </label>
+          </div>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="d-flex gap-2 mt-4">
+      <button class="btn-accent" type="submit"><i class="bi bi-check2-circle me-1"></i> <%= orchid ? 'Simpan Perubahan' : 'Buat Data Anggrek' %></button>
+      <a href="/karyawan/anggrek" class="btn-soft">Batal</a>
+    </div>
+  </form>
+</div>
+
+<%- include('../partials/foot') %>

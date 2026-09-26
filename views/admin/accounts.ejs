@@ -1,0 +1,83 @@
+<%- include('../partials/head', { title: title, nav: 'admin-nav', active: 'akun' }) %>
+
+<div class="page-head">
+  <div>
+    <h1>Data Akun</h1>
+    <div class="sub">Kelola akun admin, karyawan, dan customer</div>
+  </div>
+  <a href="/admin/akun/tambah?role=<%= role %>" class="btn-accent">
+    <i class="bi bi-person-plus-fill me-1"></i> Tambah Akun <%= role === 'admin' ? 'Admin' : (role === 'karyawan' ? 'Karyawan' : 'Customer') %>
+  </a>
+</div>
+
+<div class="panel" style="margin-bottom:18px">
+  <div class="panel-pad d-flex flex-wrap gap-3 align-items-center justify-content-between">
+    <div class="pill-tabs">
+      <a href="/admin/akun?role=admin" class="<%= role === 'admin' ? 'active' : '' %>">Admin <span class="qty-pill"><%= counts.admin %></span></a>
+      <a href="/admin/akun?role=karyawan" class="<%= role === 'karyawan' ? 'active' : '' %>">Karyawan <span class="qty-pill"><%= counts.karyawan %></span></a>
+      <a href="/admin/akun?role=customer" class="<%= role === 'customer' ? 'active' : '' %>">Customer <span class="qty-pill"><%= counts.customer %></span></a>
+    </div>
+    <form class="d-flex gap-2" method="get" action="/admin/akun">
+      <input type="hidden" name="role" value="<%= role %>" />
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input class="form-control" type="text" name="q" value="<%= q %>" placeholder="Cari nama / email..." />
+      </div>
+      <button class="btn-soft" type="submit">Cari</button>
+      <% if (q) { %><a href="/admin/akun?role=<%= role %>" class="btn-soft">Reset</a><% } %>
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-them align-middle">
+      <thead>
+        <tr>
+          <th>Nama</th>
+          <th>Email</th>
+          <th>No. HP</th>
+          <th>Alamat</th>
+          <th>Terdaftar</th>
+          <th class="text-end">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!accounts.length) { %>
+          <tr><td colspan="6">
+            <div class="empty-state"><i class="bi bi-people"></i>
+              <div class="title">Tidak ada akun <%= role %> ditemukan</div>
+              <% if (q) { %>Coba kata kunci lain.<% } %>
+            </div>
+          </td></tr>
+        <% } %>
+        <% accounts.forEach(function (a) { %>
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="avatar" style="width:36px;height:36px;font-size:14px"><%= a.name.trim().charAt(0).toUpperCase() %></div>
+                <div>
+                  <div class="cell-title"><%= a.name %><% if (a.id === user.id) { %> <span class="badge bg-success" style="font-size:10px">Kamu</span><% } %></div>
+                  <div class="cell-sub"><%= role %></div>
+                </div>
+              </div>
+            </td>
+            <td><%= a.email %></td>
+            <td><%= a.phone || '-' %></td>
+            <td><%= a.address || '-' %></td>
+            <td class="cell-sub"><%= formatDateOnly(a.created_at) %></td>
+            <td class="text-end">
+              <a class="btn-icon b-edit" href="/admin/akun/<%= a.id %>/ubah" title="Ubah"><i class="bi bi-pencil"></i></a>
+              <% if (a.id !== user.id) { %>
+                <form method="post" action="/admin/akun/<%= a.id %>/hapus" class="d-inline"
+                      onsubmit="return confirm('Hapus akun <%= a.name.replace(/'/g, "\\'") %>? Data terkait (pesanan/ulasan) bisa ikut terhapus.')">
+                  <button class="btn-icon b-del" title="Hapus" type="submit"><i class="bi bi-trash3"></i></button>
+                </form>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

@@ -1,0 +1,176 @@
+<%- include('../partials/head', { title: title, nav: 'customer-nav', active: 'keranjang' }) %>
+
+<div class="page-head">
+  <div>
+    <h1>Keranjang Belanja 🛒</h1>
+    <div class="sub">Keranjang sementara — barang tidak disimpan jika kamu logout di device lain</div>
+  </div>
+  <a href="/customer/katalog" class="btn-soft"><i class="bi bi-flower1 me-1"></i> Lanjut Belanja</a>
+</div>
+
+<div class="panel">
+  <div class="table-responsive">
+    <table class="table table-them align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Produk</th>
+          <th>Harga</th>
+          <th style="width:170px">Jumlah</th>
+          <th class="text-end">Subtotal</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="cartRows"></tbody>
+      <tfoot id="cartFoot" style="display:none">
+        <tr style="background:#f7f4fd">
+          <th colspan="3" class="text-end">Total</th>
+          <th class="text-end price-tag" style="font-size:17px" id="cartTotal">Rp 0</th>
+          <th></th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  <div class="empty-state" id="cartEmpty">
+    <i class="bi bi-cart-x"></i>
+    <div class="title">Keranjang masih kosong</div>
+    Pilih anggrek favoritmu di <a class="link-plain" href="/customer/katalog">katalog</a>.
+  </div>
+
+  <div class="panel-pad d-flex flex-wrap gap-3 justify-content-between align-items-center" id="cartActions" style="display:none;border-top:1px solid var(--line)">
+    <div style="flex:1;min-width:240px">
+      <label class="form-label">Catatan pesanan (opsional)</label>
+      <input type="text" id="cartNote" class="form-control" placeholder="contoh: tolong dikemas aman..." />
+    </div>
+    <button class="btn-accent" style="font-size:15px;padding:12px 26px" id="checkoutBtn">
+      <i class="bi bi-bag-check me-1"></i> Checkout Pesanan
+    </button>
+  </div>
+</div>
+
+<script>
+  window.CART_CATALOG = <%- JSON.stringify(catalog) %>;
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var catalogMap = {};
+  window.CART_CATALOG.forEach(function (c) { catalogMap[c.catalog_id] = c; });
+
+  function fmt(n) { return 'Rp ' + Number(n).toLocaleString('id-ID'); }
+
+  function render() {
+    var cart = DOrchid.readCart().filter(function (i) { return catalogMap[i.id]; });
+    // bersihkan item yang sudah tidak berlaku
+    var validIds = cart.map(function (i) { return i.id; });
+    DOrchid.writeCart(cart);
+
+    var tbody = document.getElementById('cartRows');
+    var empty = document.getElementById('cartEmpty');
+    var foot = document.getElementById('cartFoot');
+    var actions = document.getElementById('cartActions');
+    tbody.innerHTML = '';
+    if (!cart.length) {
+      empty.style.display = 'block';
+      foot.style.display = 'none';
+      actions.style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    foot.style.display = '';
+    actions.style.display = 'flex';
+
+    var total = 0;
+    cart.forEach(function (line) {
+      var c = catalogMap[line.id];
+      var sub = c.price * line.qty;
+      total += sub;
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td><div class="d-flex align-items-center gap-2">' +
+          (c.image
+            ? '<img src="' + c.image + '" class="cart-row-img" alt="" />'
+            : '<div class="cart-row-img" style="display:grid;place-items:center;background:#f3eefe">🌱</div>') +
+          '<div><div class="cell-title">' + c.name + '</div>' +
+          '<div class="cell-sub">' + c.jenis + ' · stok ' + c.stock + '</div></div>' +
+        '</div></td>' +
+        '<td class="price-tag">' + fmt(c.price) + '</td>' +
+        '<td><div class="qty-stepper">' +
+          '<button type="button" data-act="dec">−</button>' +
+          '<input type="text" value="' + line.qty + '" readonly />' +
+          '<button type="button" data-act="inc">+</button>' +
+        '</div></td>' +
+        '<td class="text-end price-tag">' + fmt(sub) + '</td>' +
+        '<td class="text-end"><button class="btn-icon b-del" type="button" title="Hapus"><i class="bi bi-trash3"></i></button></td>';
+
+      tr.querySelector('[data-act="dec"]').addEventListener('click', function () {
+        changeQty(line.id, -1);
+      });
+      tr.querySelector('[data-act="inc"]').addEventListener('click', function () {
+        changeQty(line.id, 1);
+      });
+      tr.querySelector('.b-del').addEventListener('click', function () {
+        removeItem(line.id);
+      });
+      tbody.appendChild(tr);
+    });
+    document.getElementById('cartTotal').textContent = fmt(total);
+  }
+
+  function changeQty(id, delta) {
+    var cart = DOrchid.readCart();
+    var c = catalogMap[id];
+    cart.forEach(function (i) {
+      if (i.id === id) {
+        i.qty += delta;
+        if (i.qty < 1) i.qty = 1;
+        if (c && i.qty > c.stock) {
+          i.qty = c.stock;
+          showToast('Stok tidak mencukupi (tersisa ' + c.stock + ').', 'err');
+        }
+      }
+    });
+    DOrchid.writeCart(cart);
+    render();
+  }
+
+  function removeItem(id) {
+    var cart = DOrchid.readCart().filter(function (i) { return i.id !== id; });
+    DOrchid.writeCart(cart);
+    showToast('Item dihapus dari keranjang.');
+    render();
+  }
+
+  document.getElementById('checkoutBtn').addEventListener('click', function () {
+    var cart = DOrchid.readCart();
+    if (!cart.length) return showToast('Keranjang kosong.', 'err');
+    var btn = this;
+    btn.disabled = true;
+    fetch('/customer/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: cart.map(function (i) { return { id: i.id, qty: i.qty }; }),
+        note: document.getElementById('cartNote').value
+      })
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (!res.ok) {
+          showToast(res.d.error || 'Checkout gagal.', 'err');
+          btn.disabled = false;
+          return;
+        }
+        DOrchid.clearCart();
+        showToast('Pesanan #' + res.d.orderId + ' berhasil dibuat! 🌸', 'ok');
+        setTimeout(function () { location.href = '/customer/pesanan'; }, 700);
+      })
+      .catch(function () {
+        showToast('Terjadi kesalahan jaringan.', 'err');
+        btn.disabled = false;
+      });
+  });
+
+  render();
+});
+</script>
+
+<%- include('../partials/foot') %>

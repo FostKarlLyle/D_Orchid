@@ -1,0 +1,45 @@
+<%- include('../partials/head', { title: title, nav: 'admin-nav', active: 'galeri' }) %>
+
+<div class="page-head">
+  <div>
+    <h1>Galeri</h1>
+    <div class="sub">Foto-foto anggrek yang tampil untuk customer</div>
+  </div>
+  <a href="/admin/galeri/tambah" class="btn-accent"><i class="bi bi-plus-lg me-1"></i> Tambah Foto</a>
+</div>
+
+<% if (!items.length) { %>
+  <div class="panel">
+    <div class="empty-state">
+      <i class="bi bi-images"></i>
+      <div class="title">Galeri masih kosong</div>
+      Tambahkan foto pertama lewat tombol <b>Tambah Foto</b>.
+    </div>
+  </div>
+<% } else { %>
+  <div class="gal-grid">
+    <% items.forEach(function (f) { %>
+      <div class="panel gal-card">
+        <% if (f.image) { %>
+          <img class="gal-img" src="<%= f.image %>" alt="<%= f.title %>" loading="lazy" />
+        <% } else { %>
+          <div class="gal-img empty">🖼️</div>
+        <% } %>
+        <div class="gal-body">
+          <div class="gal-title"><%= f.title %></div>
+          <div class="gal-cap"><%= f.caption || 'Tanpa keterangan' %></div>
+          <div class="gal-cap mt-1"><%= formatDateOnly(f.created_at) %></div>
+          <div class="d-flex gap-2 mt-3">
+            <a class="btn-icon b-edit" href="/admin/galeri/<%= f.id %>/ubah" title="Ubah"><i class="bi bi-pencil"></i></a>
+            <form method="post" action="/admin/galeri/<%= f.id %>/hapus" class="d-inline"
+                  onsubmit="return confirm('Hapus foto galeri ini?')">
+              <button class="btn-icon b-del" type="submit" title="Hapus"><i class="bi bi-trash3"></i></button>
+            </form>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('../partials/foot') %>

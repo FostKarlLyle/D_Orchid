@@ -1,0 +1,134 @@
+<%- include('../partials/head', { title: title, nav: 'admin-nav', active: 'laporan' }) %>
+
+<div class="page-head">
+  <div>
+    <h1>Laporan Penjualan</h1>
+    <div class="sub">Lihat dan unduh laporan penjualan berdasarkan periode tertentu</div>
+  </div>
+  <a class="btn-accent" href="/admin/laporan/unduh?from=<%= from %>&to=<%= to %>">
+    <i class="bi bi-file-earmark-arrow-down me-1"></i> Unduh CSV
+  </a>
+</div>
+
+<!-- Filter periode -->
+<div class="panel panel-pad mb-4">
+  <form class="row g-3 align-items-end" method="get" action="/admin/laporan">
+    <div class="col-md-3">
+      <label class="form-label">Dari Tanggal</label>
+      <input type="date" name="from" class="form-control" value="<%= from %>" />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Sampai Tanggal</label>
+      <input type="date" name="to" class="form-control" value="<%= to %>" />
+    </div>
+    <div class="col-md-4 d-flex gap-2">
+      <button class="btn-accent" type="submit"><i class="bi bi-funnel me-1"></i> Terapkan Periode</button>
+      <a class="btn-soft" href="/admin/laporan">Reset (bulan ini)</a>
+    </div>
+    <div class="col-md-2">
+      <div class="text-muted-2" style="text-align:right">
+        <i class="bi bi-calendar3 me-1"></i> <%= formatDateOnly(from) %><br>s.d. <%= formatDateOnly(to) %>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Ringkasan -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon i-violet"><i class="bi bi-receipt"></i></div>
+    <div>
+      <div class="stat-label">Total Transaksi</div>
+      <div class="stat-value"><%= summary.count %></div>
+      <div class="stat-note"><%= summary.cancelled %> dibatalkan</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon i-pink"><i class="bi bi-cash-stack"></i></div>
+    <div>
+      <div class="stat-label">Total Pendapatan</div>
+      <div class="stat-value"><%= formatRp(summary.revenue) %></div>
+      <div class="stat-note">tidak termasuk yang dibatalkan</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon i-teal"><i class="bi bi-graph-up"></i></div>
+    <div>
+      <div class="stat-label">Rata-rata / Pesanan</div>
+      <div class="stat-value"><%= formatRp(summary.avg) %></div>
+      <div class="stat-note">pesanan valid</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon i-amber"><i class="bi bi-pie-chart-fill"></i></div>
+    <div>
+      <div class="stat-label">Selesai</div>
+      <div class="stat-value"><%= (byStatus.find(function (b) { return b.status === 'selesai'; }) || {}).count || 0 %></div>
+      <div class="stat-note">dari <%= summary.count %> pesanan</div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabel laporan -->
+<div class="panel">
+  <div class="panel-pad pb-2">
+    <div class="panel-title"><i class="bi bi-table"></i> Rincian Pesanan Periode Terpilih</div>
+    <div class="panel-sub">
+      <% byStatus.forEach(function (b) { %>
+        <span class="badge <%= statusInfo(b.status).cls %> me-1"><%= statusInfo(b.status).label %>: <%= b.count %></span>
+      <% }) %>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-them align-middle">
+      <thead>
+        <tr>
+          <th>No.</th>
+          <th>Tanggal</th>
+          <th>Customer</th>
+          <th>Item</th>
+          <th>Status</th>
+          <th class="text-end">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!orders.length) { %>
+          <tr><td colspan="6">
+            <div class="empty-state"><i class="bi bi-inbox"></i>
+              <div class="title">Tidak ada pesanan pada periode ini</div>
+              Ubah periode tanggal untuk melihat laporan lain.
+            </div>
+          </td></tr>
+        <% } %>
+        <% orders.forEach(function (o) { %>
+          <tr>
+            <td><a class="link-plain" href="/admin/pesanan/<%= o.id %>">#<%= o.id %></a></td>
+            <td class="cell-sub"><%= formatDate(o.created_at) %></td>
+            <td><%= o.customer_name %></td>
+            <td style="max-width:300px">
+              <% o.items.forEach(function (i, idx) { %>
+                <div class="cell-sub"><%= idx + 1 %>. <%= i.item_name %> <span class="qty-pill">×<%= i.qty %></span></div>
+              <% }) %>
+            </td>
+            <td><span class="badge <%= statusInfo(o.status).cls %>"><%= statusInfo(o.status).label %></span></td>
+            <td class="text-end price-tag"><%= formatRp(o.total) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+      <% if (orders.length) { %>
+        <tfoot>
+          <tr style="background:#f7f4fd">
+            <th colspan="5" class="text-end">Total Pendapatan (tanpa dibatalkan)</th>
+            <th class="text-end price-tag" style="font-size:16px"><%= formatRp(summary.revenue) %></th>
+          </tr>
+        </tfoot>
+      <% } %>
+    </table>
+  </div>
+  <div class="panel-pad pt-0 text-muted-2">
+    <i class="bi bi-download me-1"></i>
+    Klik <b>Unduh CSV</b> untuk mengunduh laporan sesuai periode yang sedang dipilih.
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

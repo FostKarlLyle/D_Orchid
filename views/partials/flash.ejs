@@ -1,0 +1,7 @@
+<% if (flash) { %>
+<div class="alert alert-<%= flash.type %> alert-dismissible fade show app-alert" role="alert">
+  <i class="bi <%= flash.type === 'success' ? 'bi-check-circle-fill' : (flash.type === 'danger' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill') %> me-2"></i>
+  <%= flash.msg %>
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+</div>
+<% } %>

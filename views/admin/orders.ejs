@@ -1,0 +1,68 @@
+<%- include('../partials/head', { title: title, nav: 'admin-nav', active: 'pesanan' }) %>
+
+<div class="page-head">
+  <div>
+    <h1>Pesanan</h1>
+    <div class="sub">Buat, lihat, dan perbarui status pesanan</div>
+  </div>
+  <a href="/admin/pesanan/tambah" class="btn-accent"><i class="bi bi-plus-lg me-1"></i> Buat Pesanan</a>
+</div>
+
+<div class="panel" style="margin-bottom:18px">
+  <div class="panel-pad d-flex flex-wrap gap-3 justify-content-between align-items-center mb-0">
+    <div class="pill-tabs">
+      <a href="/admin/pesanan" class="<%= status === '' ? 'active' : '' %>">Semua <span class="qty-pill"><%= counts.all %></span></a>
+      <a href="/admin/pesanan?status=pending" class="<%= status === 'pending' ? 'active' : '' %>">Menunggu <span class="qty-pill"><%= counts.pending %></span></a>
+      <a href="/admin/pesanan?status=diproses" class="<%= status === 'diproses' ? 'active' : '' %>">Diproses <span class="qty-pill"><%= counts.diproses %></span></a>
+      <a href="/admin/pesanan?status=selesai" class="<%= status === 'selesai' ? 'active' : '' %>">Selesai <span class="qty-pill"><%= counts.selesai %></span></a>
+      <a href="/admin/pesanan?status=dibatalkan" class="<%= status === 'dibatalkan' ? 'active' : '' %>">Dibatalkan <span class="qty-pill"><%= counts.dibatalkan %></span></a>
+    </div>
+  </div>
+
+  <div class="table-responsive mt-3">
+    <table class="table table-them align-middle">
+      <thead>
+        <tr>
+          <th>No.</th>
+          <th>Tanggal</th>
+          <th>Customer</th>
+          <th>Item</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th class="text-end">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!orders.length) { %>
+          <tr><td colspan="7">
+            <div class="empty-state"><i class="bi bi-bag-x"></i>
+              <div class="title">Tidak ada pesanan<%= status ? ' dengan status ini' : '' %></div>
+            </div>
+          </td></tr>
+        <% } %>
+        <% orders.forEach(function (o) { %>
+          <tr>
+            <td><b>#<%= o.id %></b></td>
+            <td class="cell-sub"><%= formatDate(o.created_at) %></td>
+            <td>
+              <div class="cell-title"><%= o.customer_name %></div>
+              <% if (o.note) { %><div class="cell-sub"><i class="bi bi-sticky me-1"></i><%= o.note %></div><% } %>
+            </td>
+            <td style="max-width:280px">
+              <% o.items.forEach(function (i, idx) { %>
+                <div class="cell-sub"><%= idx + 1 %>. <%= i.item_name %> <span class="qty-pill">×<%= i.qty %></span></div>
+              <% }) %>
+            </td>
+            <td class="price-tag"><%= formatRp(o.total) %></td>
+            <td><span class="badge <%= statusInfo(o.status).cls %>"><%= statusInfo(o.status).label %></span></td>
+            <td class="text-end">
+              <a class="btn-icon b-eye" href="/admin/pesanan/<%= o.id %>" title="Detail & ubah status"><i class="bi bi-eye"></i></a>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

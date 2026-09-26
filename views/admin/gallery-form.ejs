@@ -1,0 +1,38 @@
+<%- include('../partials/head', { title: title, nav: 'admin-nav', active: 'galeri' }) %>
+
+<div class="page-head">
+  <div>
+    <h1><%= foto ? 'Ubah' : 'Tambah' %> Foto Galeri</h1>
+    <div class="sub"><a class="link-plain" href="/admin/galeri"><i class="bi bi-arrow-left"></i> Kembali ke galeri</a></div>
+  </div>
+</div>
+
+<div class="panel panel-pad" style="max-width:720px">
+  <form method="post" action="<%= foto ? '/admin/galeri/' + foto.id + '/ubah' : '/admin/galeri/tambah' %>"
+        enctype="multipart/form-data">
+    <div class="mb-3">
+      <label class="form-label">Judul Foto *</label>
+      <input type="text" name="title" class="form-control" required value="<%= foto ? foto.title : '' %>" placeholder="contoh: Kebun Anggrek D'Orchid" />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Keterangan</label>
+      <textarea name="caption" class="form-control" rows="3" placeholder="Deskripsi singkat foto..."><%= foto ? foto.caption : '' %></textarea>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">File Gambar <%= foto ? '(kosongkan untuk mempertahankan foto lama)' : '*' %></label>
+      <input type="file" name="image" class="form-control" accept=".jpg,.jpeg,.png,.webp,.gif" <%= foto ? '' : 'required' %> />
+      <div class="text-muted-2 mt-1">Format: jpg, jpeg, png, webp, gif — maks 5 MB.</div>
+    </div>
+    <% if (foto && foto.image) { %>
+      <div class="mb-3">
+        <img src="<%= foto.image %>" alt="" style="max-height:220px;border-radius:14px;border:1px solid var(--line)" />
+      </div>
+    <% } %>
+    <div class="d-flex gap-2">
+      <button class="btn-accent" type="submit"><i class="bi bi-check2-circle me-1"></i> Simpan</button>
+      <a href="/admin/galeri" class="btn-soft">Batal</a>
+    </div>
+  </form>
+</div>
+
+<%- include('../partials/foot') %>

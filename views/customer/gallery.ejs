@@ -1,0 +1,37 @@
+<%- include('../partials/head', { title: title, nav: 'customer-nav', active: 'galeri' }) %>
+
+<div class="page-head">
+  <div>
+    <h1>Galeri Anggrek 📸</h1>
+    <div class="sub">Koleksi foto anggrek dan kebun D'Orchid</div>
+  </div>
+</div>
+
+<% if (!items.length) { %>
+  <div class="panel">
+    <div class="empty-state">
+      <i class="bi bi-images"></i>
+      <div class="title">Galeri masih kosong</div>
+      Foto akan segera menyusul.
+    </div>
+  </div>
+<% } else { %>
+  <div class="gal-grid">
+    <% items.forEach(function (f) { %>
+      <div class="panel gal-card">
+        <% if (f.image) { %>
+          <img class="gal-img" src="<%= f.image %>" alt="<%= f.title %>" loading="lazy" />
+        <% } else { %>
+          <div class="gal-img empty">🖼️</div>
+        <% } %>
+        <div class="gal-body">
+          <div class="gal-title"><%= f.title %></div>
+          <div class="gal-cap"><%= f.caption || 'Tanpa keterangan' %></div>
+          <div class="gal-cap mt-1"><%= formatDateOnly(f.created_at) %></div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('../partials/foot') %>

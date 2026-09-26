@@ -1,0 +1,89 @@
+<%- include('../partials/head', { title: title, nav: 'admin-nav', active: 'pesanan' }) %>
+
+<div class="page-head">
+  <div>
+    <h1>Detail Pesanan #<%= order.id %></h1>
+    <div class="sub"><a class="link-plain" href="/admin/pesanan"><i class="bi bi-arrow-left"></i> Kembali ke daftar pesanan</a></div>
+  </div>
+  <span class="badge <%= statusInfo(order.status).cls %>" style="font-size:14px;padding:8px 14px">
+    <%= statusInfo(order.status).label %>
+  </span>
+</div>
+
+<div class="grid-2-1">
+  <div class="panel">
+    <div class="panel-pad pb-2">
+      <div class="panel-title"><i class="bi bi-bag-check"></i> Item Pesanan</div>
+      <div class="panel-sub">Dipesan pada <%= formatDate(order.created_at) %></div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-them align-middle">
+        <thead>
+          <tr><th>Produk</th><th>Harga Satuan</th><th>Jumlah</th><th class="text-end">Subtotal</th></tr>
+        </thead>
+        <tbody>
+          <% items.forEach(function (i) { %>
+            <tr>
+              <td class="cell-title"><%= i.item_name %></td>
+              <td><%= formatRp(i.price) %></td>
+              <td><span class="qty-pill">×<%= i.qty %></span></td>
+              <td class="text-end price-tag"><%= formatRp(i.price * i.qty) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+        <tfoot>
+          <tr>
+            <th colspan="3" class="text-end">Total</th>
+            <th class="text-end price-tag" style="font-size:17px"><%= formatRp(order.total) %></th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <% if (order.note) { %>
+      <div class="panel-pad pt-0">
+        <div class="note-box"><i class="bi bi-sticky me-1"></i> <b>Catatan:</b> <%= order.note %></div>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="panel panel-pad">
+    <div class="panel-title"><i class="bi bi-person"></i> Informasi Customer</div>
+    <div class="panel-sub">Data pembeli pesanan ini</div>
+    <% if (customer) { %>
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div class="avatar"><%= customer.name.trim().charAt(0).toUpperCase() %></div>
+        <div>
+          <div class="cell-title"><%= customer.name %></div>
+          <div class="cell-sub"><%= customer.email %></div>
+        </div>
+      </div>
+      <table class="table table-sm mb-4" style="font-size:13.5px">
+        <tr><td class="text-muted-2">No. HP</td><td class="text-end"><b><%= customer.phone || '-' %></b></td></tr>
+        <tr><td class="text-muted-2">Alamat</td><td class="text-end"><b><%= customer.address || '-' %></b></td></tr>
+      </table>
+      <a class="btn-soft d-inline-block text-decoration-none mb-4" href="/admin/akun?role=customer&q=<%= encodeURIComponent(customer.email) %>">
+        <i class="bi bi-person-lines-fill me-1"></i> Lihat akun
+      </a>
+    <% } else { %>
+      <div class="note-box mb-4">Akun customer ini sudah dihapus. Nama snapshot: <b><%= order.customer_name %></b></div>
+    <% } %>
+
+    <div class="panel-title mt-2"><i class="bi bi-arrow-repeat"></i> Update Status</div>
+    <div class="panel-sub">Terakhir diubah: <%= formatDate(order.updated_at) %></div>
+    <form method="post" action="/admin/pesanan/<%= order.id %>/status">
+      <div class="mb-3">
+        <select name="status" class="form-select">
+          <% ['pending','diproses','selesai','dibatalkan'].forEach(function (s) { %>
+            <option value="<%= s %>" <%= order.status === s ? 'selected' : '' %>>
+              <%= statusInfo(s).label %>
+            </option>
+          <% }) %>
+        </select>
+      </div>
+      <button class="btn-accent w-100" type="submit"><i class="bi bi-check2-circle me-1"></i> Simpan Status</button>
+      <div class="text-muted-2 mt-2"><i class="bi bi-info-circle me-1"></i> Saat dibatalkan, stok anggrek dikembalikan otomatis.</div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

@@ -1,0 +1,43 @@
+<%- include('../partials/head', { title: title, nav: 'karyawan-nav', active: 'katalog' }) %>
+
+<div class="page-head">
+  <div>
+    <h1>Ubah Data Katalog</h1>
+    <div class="sub"><a class="link-plain" href="/karyawan/katalog"><i class="bi bi-arrow-left"></i> Kembali ke katalog</a></div>
+  </div>
+</div>
+
+<div class="panel panel-pad" style="max-width:640px">
+  <div class="d-flex align-items-center gap-3 mb-4 pb-3" style="border-bottom:1px solid var(--line)">
+    <% if (item.image) { %><img src="<%= item.image %>" class="cell-thumb" style="width:64px;height:64px" alt="" /><% } else { %><div class="cell-thumb empty" style="width:64px;height:64px">🌱</div><% } %>
+    <div>
+      <div class="cell-title" style="font-size:16px"><%= item.name %></div>
+      <div class="cell-sub"><%= item.jenis %> · <%= item.varietas || '-' %></div>
+    </div>
+  </div>
+
+  <form method="post" action="/karyawan/katalog/<%= item.id %>/ubah">
+    <div class="mb-3">
+      <label class="form-label">Harga Jual (Rp) *</label>
+      <div class="input-group">
+        <span class="input-group-text">Rp</span>
+        <input type="number" name="price" class="form-control" min="1" step="1000" required
+               value="<%= Math.round(item.price) %>" />
+      </div>
+      <div class="text-muted-2 mt-1">Saat ini: <b><%= formatRp(item.price) %></b></div>
+    </div>
+    <div class="mb-4">
+      <label class="form-label">Status Katalog</label>
+      <select name="is_active" class="form-select">
+        <option value="1" <%= item.is_active ? 'selected' : '' %>>Aktif — tampil di katalog customer</option>
+        <option value="0" <%= item.is_active ? '' : 'selected' %>>Nonaktif — sembunyikan dari customer</option>
+      </select>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn-accent" type="submit"><i class="bi bi-check2-circle me-1"></i> Simpan Perubahan</button>
+      <a href="/karyawan/katalog" class="btn-soft">Batal</a>
+    </div>
+  </form>
+</div>
+
+<%- include('../partials/foot') %>

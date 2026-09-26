@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login · D'Orchid</title>
+  <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/vendor/icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/public/css/style.css" />
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="auth-hero" style="background-image:url('/public/uploads/hero-login.jpg')">
+      <div class="auth-hero-inner">
+        <div class="auth-brand">
+          <div class="brand-badge" style="width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.15);display:grid;place-items:center;font-size:22px">🌸</div>
+          D'Orchid
+        </div>
+        <h1>Anggrek indah,<br>rawatan penuh cinta.</h1>
+        <p>Katalog anggrek pilihan, dirawat langsung oleh tenaga perawatan kami. Pesan online, kirim ke seluruh Indonesia.</p>
+      </div>
+    </div>
+
+    <div class="auth-form-side">
+      <div class="auth-card">
+        <h2>Selamat datang 👋</h2>
+        <div class="hint">Login ke akunmu untuk melanjutkan.</div>
+
+        <% if (flash) { %>
+          <div class="alert alert-<%= flash.type %> alert-dismissible fade show app-alert" role="alert">
+            <%= flash.msg %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        <% } %>
+
+        <form method="post" action="/login">
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+              <input type="email" name="email" class="form-control" placeholder="nama@email.com" required autofocus />
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label">Password</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-lock"></i></span>
+              <input type="password" name="password" class="form-control" placeholder="••••••••" required />
+            </div>
+          </div>
+          <button class="btn-accent w-100" type="submit">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Login
+          </button>
+        </form>
+
+        <div class="auth-switch">
+          Belum punya akun? <a href="/register" class="link-plain">Daftar sebagai Customer</a>
+        </div>
+
+        <div class="demo-box">
+          <b>Akun demo:</b><br>
+          Admin — <code>admin@d-orchid.id</code> / <code>admin123</code><br>
+          Karyawan — <code>karyawan@d-orchid.id</code> / <code>karyawan123</code><br>
+          Customer — <code>sari@mail.com</code> / <code>customer123</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-app" id="toastApp"></div>
+  <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="/public/js/app.js"></script>
+</body>
+</html>

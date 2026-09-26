@@ -1,0 +1,72 @@
+<%- include('../partials/head', { title: title, nav: 'customer-nav', active: 'katalog' }) %>
+
+<div class="page-head">
+  <div>
+    <h1>Katalog Anggrek 🌸</h1>
+    <div class="sub">Cari berdasarkan nama, jenis, atau varietas — lalu masukkan ke keranjang</div>
+  </div>
+  <form class="d-flex gap-2" method="get" action="/customer/katalog" style="min-width:min(420px,100%)">
+    <div class="search-box" style="flex:1">
+      <i class="bi bi-search"></i>
+      <input class="form-control" type="text" name="q" value="<%= q %>"
+             placeholder="Cari nama, jenis, atau varietas..." autofocus />
+    </div>
+    <button class="btn-accent" type="submit"><i class="bi bi-search me-1"></i> Cari</button>
+    <% if (q) { %><a href="/customer/katalog" class="btn-soft">Reset</a><% } %>
+  </form>
+</div>
+
+<% if (q) { %>
+  <div class="text-muted-2 mb-3">
+    Hasil pencarian <b>"<%= q %>"</b> — <%= items.length %> anggrek ditemukan.
+  </div>
+<% } %>
+
+<% if (!items.length) { %>
+  <div class="panel">
+    <div class="empty-state">
+      <i class="bi bi-emoji-frown"></i>
+      <div class="title">Anggrek tidak ditemukan</div>
+      Coba kata kunci lain, misalnya <i>Dendrobium</i>, <i>Phalaenopsis</i>, atau nama varietasnya.
+    </div>
+  </div>
+<% } else { %>
+  <div class="prod-grid">
+    <% items.forEach(function (it) { %>
+      <div class="panel prod-card">
+        <% if (it.image) { %>
+          <img class="prod-img" src="<%= it.image %>" alt="<%= it.name %>" loading="lazy" />
+        <% } else { %>
+          <div class="prod-img empty">🌱</div>
+        <% } %>
+        <div class="prod-body">
+          <div class="prod-name"><%= it.name %></div>
+          <div class="prod-meta">
+            <span class="badge badge-fase <%= FASE_BADGE[it.fase] %>"><%= it.fase %></span>
+            <span class="badge bg-light text-dark border"><%= it.jenis %></span>
+            <% if (it.varietas) { %><span class="badge bg-light text-dark border"><%= it.varietas %></span><% } %>
+          </div>
+          <% if (it.review_count) { %>
+            <div><span class="stars">★ <%= it.avg_rating %></span> <span class="cell-sub">(<%= it.review_count %> ulasan)</span></div>
+          <% } %>
+          <div class="prod-desc"><%= it.description || '' %></div>
+          <div class="prod-foot">
+            <div>
+              <div class="price-tag" style="font-size:17px"><%= formatRp(it.price) %></div>
+              <div class="cell-sub">Stok: <%= it.stock %> pot</div>
+            </div>
+            <% if (it.stock > 0) { %>
+              <button class="btn-accent" type="button" onclick="DOrchid.addToCart(<%= it.catalog_id %>, 1)">
+                <i class="bi bi-cart-plus"></i> Keranjang
+              </button>
+            <% } else { %>
+              <span class="badge bg-danger">Habis</span>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('../partials/foot') %>

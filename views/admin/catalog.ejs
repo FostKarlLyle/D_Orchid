@@ -1,0 +1,91 @@
+<%- include('../partials/head', { title: title, nav: 'admin-nav', active: 'katalog' }) %>
+
+<div class="page-head">
+  <div>
+    <h1>Katalog Anggrek</h1>
+    <div class="sub">Anggrek yang dipilih dari data tenaga kerja untuk dijual ke customer</div>
+  </div>
+  <a href="/admin/katalog/tambah" class="btn-accent" style="font-size:16px;padding:10px 22px">
+    <i class="bi bi-plus-lg" style="font-weight:900"></i> Tambah ke Katalog
+  </a>
+</div>
+
+<div class="panel" style="margin-bottom:18px">
+  <div class="panel-pad pb-0 d-flex flex-wrap gap-3 justify-content-between align-items-center">
+    <div class="text-muted-2">
+      <i class="bi bi-info-circle me-1"></i>
+      Tekan tombol <b>+</b> untuk memilih <b>data anggrek</b> yang dibuat karyawan, lalu tentukan harga jualnya.
+    </div>
+    <form class="d-flex gap-2 mb-3" method="get" action="/admin/katalog">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input class="form-control" type="text" name="q" value="<%= q %>" placeholder="Cari nama / jenis / varietas..." />
+      </div>
+      <button class="btn-soft" type="submit">Cari</button>
+      <% if (q) { %><a href="/admin/katalog" class="btn-soft">Reset</a><% } %>
+    </form>
+  </div>
+
+  <div class="table-responsive mt-3">
+    <table class="table table-them align-middle">
+      <thead>
+        <tr>
+          <th>Produk</th>
+          <th>Fase</th>
+          <th>Harga</th>
+          <th>Stok</th>
+          <th>Rating</th>
+          <th>Status</th>
+          <th class="text-end">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!items.length) { %>
+          <tr><td colspan="7">
+            <div class="empty-state">
+              <i class="bi bi-shop"></i>
+              <div class="title">Katalog masih kosong</div>
+              Tekan <b>+ Tambah ke Katalog</b> untuk memilih data anggrek dari tenaga kerja.
+            </div>
+          </td></tr>
+        <% } %>
+        <% items.forEach(function (it) { %>
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <% if (it.image) { %><img src="<%= it.image %>" class="cell-thumb" alt="" /><% } else { %><div class="cell-thumb empty">🌱</div><% } %>
+                <div>
+                  <div class="cell-title"><%= it.name %></div>
+                  <div class="cell-sub"><%= it.jenis %> · <%= it.varietas || '-' %></div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge badge-fase <%= FASE_BADGE[it.fase] %>"><%= it.fase %></span></td>
+            <td class="price-tag"><%= formatRp(it.price) %></td>
+            <td><b><%= it.stock %></b> pot</td>
+            <td>
+              <% if (it.review_count) { %>
+                <span class="stars">★ <%= it.avg_rating %></span>
+                <span class="cell-sub">(<%= it.review_count %>)</span>
+              <% } else { %>
+                <span class="cell-sub">Belum ada ulasan</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (it.is_active) { %><span class="badge bg-success">Aktif</span><% } else { %><span class="badge bg-secondary">Nonaktif</span><% } %>
+            </td>
+            <td class="text-end">
+              <a class="btn-icon b-edit" href="/admin/katalog/<%= it.id %>/ubah" title="Ubah harga"><i class="bi bi-pencil"></i></a>
+              <form method="post" action="/admin/katalog/<%= it.id %>/hapus" class="d-inline"
+                    onsubmit="return confirm('Hapus &quot;<%= it.name %>&quot; dari katalog? Data anggrek tidak ikut terhapus.')">
+                <button class="btn-icon b-del" title="Hapus dari katalog" type="submit"><i class="bi bi-trash3"></i></button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

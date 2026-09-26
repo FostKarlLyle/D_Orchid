@@ -1,0 +1,40 @@
+<%- include('../partials/head', { title: title, nav: 'admin-nav', active: 'akun' }) %>
+
+<div class="page-head">
+  <div>
+    <h1><%= akun ? 'Ubah' : 'Tambah' %> Akun <%= role === 'admin' ? 'Admin' : (role === 'karyawan' ? 'Karyawan' : 'Customer') %></h1>
+    <div class="sub"><a class="link-plain" href="/admin/akun?role=<%= role %>"><i class="bi bi-arrow-left"></i> Kembali ke data akun</a></div>
+  </div>
+</div>
+
+<div class="panel panel-pad" style="max-width:760px">
+  <form method="post" action="<%= akun ? '/admin/akun/' + akun.id + '/ubah' : '/admin/akun/tambah' %>" class="row g-3">
+    <% if (!akun) { %><input type="hidden" name="role" value="<%= role %>" /><% } %>
+    <div class="col-md-6">
+      <label class="form-label">Nama Lengkap *</label>
+      <input type="text" name="name" class="form-control" required value="<%= akun ? akun.name : '' %>" placeholder="Nama lengkap" />
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Email *</label>
+      <input type="email" name="email" class="form-control" required value="<%= akun ? akun.email : '' %>" placeholder="nama@email.com" />
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">No. HP</label>
+      <input type="text" name="phone" class="form-control" value="<%= akun ? akun.phone : '' %>" placeholder="08xx-xxxx-xxxx" />
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Password <%= akun ? '(kosongkan jika tidak diganti)' : '*' %></label>
+      <input type="password" name="password" class="form-control" <%= akun ? '' : 'required' %> minlength="6" placeholder="min. 6 karakter" />
+    </div>
+    <div class="col-12">
+      <label class="form-label">Alamat</label>
+      <input type="text" name="address" class="form-control" value="<%= akun ? akun.address : '' %>" placeholder="Alamat" />
+    </div>
+    <div class="col-12 d-flex gap-2">
+      <button class="btn-accent" type="submit"><i class="bi bi-check2-circle me-1"></i> <%= akun ? 'Simpan Perubahan' : 'Tambah Akun' %></button>
+      <a href="/admin/akun?role=<%= role %>" class="btn-soft">Batal</a>
+    </div>
+  </form>
+</div>
+
+<%- include('../partials/foot') %>
