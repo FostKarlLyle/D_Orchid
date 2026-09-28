@@ -5,10 +5,19 @@
     <h1>Data Akun</h1>
     <div class="sub">Kelola akun admin, karyawan, dan customer</div>
   </div>
-  <a href="/admin/akun/tambah?role=<%= role %>" class="btn-accent">
-    <i class="bi bi-person-plus-fill me-1"></i> Tambah Akun <%= role === 'admin' ? 'Admin' : (role === 'karyawan' ? 'Karyawan' : 'Customer') %>
-  </a>
+  <% if (role !== 'customer') { %>
+    <a href="/admin/akun/tambah?role=<%= role %>" class="btn-accent">
+      <i class="bi bi-person-plus-fill me-1"></i> Tambah Akun <%= role === 'admin' ? 'Admin' : 'Karyawan' %>
+    </a>
+  <% } %>
 </div>
+
+<% if (role === 'customer') { %>
+  <div class="demo-banner" style="background:linear-gradient(135deg,#fff7ed,#ffedd5);border:1px dashed #fdba74;color:#9a3412;border-radius:14px;padding:10px 16px;font-size:13.5px;margin-bottom:18px">
+    <i class="bi bi-info-circle-fill me-1"></i>
+    Akun <b>customer</b> hanya dapat <b>dilihat</b> oleh admin — penambahan &amp; perubahan akun customer dinonaktifkan.
+  </div>
+<% } %>
 
 <div class="panel" style="margin-bottom:18px">
   <div class="panel-pad d-flex flex-wrap gap-3 align-items-center justify-content-between">
@@ -65,7 +74,9 @@
             <td><%= a.address || '-' %></td>
             <td class="cell-sub"><%= formatDateOnly(a.created_at) %></td>
             <td class="text-end">
-              <a class="btn-icon b-edit" href="/admin/akun/<%= a.id %>/ubah" title="Ubah"><i class="bi bi-pencil"></i></a>
+              <% if (a.role !== 'customer') { %>
+                <a class="btn-icon b-edit" href="/admin/akun/<%= a.id %>/ubah" title="Ubah"><i class="bi bi-pencil"></i></a>
+              <% } %>
               <% if (a.id !== user.id) { %>
                 <form method="post" action="/admin/akun/<%= a.id %>/hapus" class="d-inline"
                       onsubmit="return confirm('Hapus akun <%= a.name.replace(/'/g, "\\'") %>? Data terkait (pesanan/ulasan) bisa ikut terhapus.')">

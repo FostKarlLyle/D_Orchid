@@ -107,12 +107,20 @@ router.get('/akun', (req, res) => {
 
 router.get('/akun/tambah', (req, res) => {
   const role = ['admin', 'karyawan', 'customer'].includes(req.query.role) ? req.query.role : 'admin';
+  if (role === 'customer') {
+    flash(req, 'warning', 'Admin tidak dapat menambah akun customer.');
+    return res.redirect('/admin/akun?role=customer');
+  }
   res.render('admin/account-form', { title: 'Tambah Akun', role, akun: null });
 });
 
 router.post('/akun/tambah', (req, res) => {
   const { name, email, phone = '', address = '', password } = req.body;
   const role = ['admin', 'karyawan', 'customer'].includes(req.body.role) ? req.body.role : 'admin';
+  if (role === 'customer') {
+    flash(req, 'warning', 'Admin tidak dapat menambah akun customer.');
+    return res.redirect('/admin/akun?role=customer');
+  }
   if (!name || !email || !password) {
     flash(req, 'danger', 'Nama, email, dan password wajib diisi.');
     return res.redirect(`/admin/akun/tambah?role=${role}`);
@@ -144,6 +152,10 @@ router.get('/akun/:id/ubah', (req, res) => {
     flash(req, 'warning', 'Akun tidak ditemukan.');
     return res.redirect('/admin/akun');
   }
+  if (akun.role === 'customer') {
+    flash(req, 'warning', 'Admin tidak dapat mengubah akun customer.');
+    return res.redirect('/admin/akun?role=customer');
+  }
   res.render('admin/account-form', { title: 'Ubah Akun', role: akun.role, akun });
 });
 
@@ -152,6 +164,10 @@ router.post('/akun/:id/ubah', (req, res) => {
   if (!akun) {
     flash(req, 'warning', 'Akun tidak ditemukan.');
     return res.redirect('/admin/akun');
+  }
+  if (akun.role === 'customer') {
+    flash(req, 'warning', 'Admin tidak dapat mengubah akun customer.');
+    return res.redirect('/admin/akun?role=customer');
   }
   const { name, email, phone = '', address = '', password } = req.body;
   if (!name || !email) {

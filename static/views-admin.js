@@ -148,8 +148,12 @@
     var me = S.currentUser();
 
     var roleLabel = role === 'admin' ? 'Admin' : role === 'karyawan' ? 'Karyawan' : 'Customer';
+    var canManage = role !== 'customer'; // admin tidak boleh menambah/mengubah akun customer
     var html = U.pageHead('Data Akun', 'Kelola akun admin, karyawan, dan customer',
-      `<a href="#/admin/akun/tambah?role=${role}" class="btn-accent"><i class="bi bi-person-plus-fill me-1"></i> Tambah Akun ${roleLabel}</a>`) + `
+      canManage
+        ? `<a href="#/admin/akun/tambah?role=${role}" class="btn-accent"><i class="bi bi-person-plus-fill me-1"></i> Tambah Akun ${roleLabel}</a>`
+        : '') + (role === 'customer'
+        ? U.demoBanner('Akun <b>customer</b> hanya dapat <b>dilihat</b> oleh admin — penambahan & perubahan akun customer dinonaktifkan.') : '') + `
       <div class="panel" style="margin-bottom:18px">
         <div class="panel-pad d-flex flex-wrap gap-3 align-items-center justify-content-between">
           <div class="pill-tabs">
@@ -177,7 +181,9 @@
                 <td>${e(a.email)}</td><td>${e(a.phone || '-')}</td><td>${e(a.address || '-')}</td>
                 <td class="cell-sub">${e(S.fmtDateOnly(a.created_at))}</td>
                 <td class="text-end">
-                  <a class="btn-icon b-edit" href="#/admin/akun/${a.id}/ubah" title="Ubah"><i class="bi bi-pencil"></i></a>
+                  ${a.role !== 'customer'
+                    ? `<a class="btn-icon b-edit" href="#/admin/akun/${a.id}/ubah" title="Ubah"><i class="bi bi-pencil"></i></a>`
+                    : ''}
                   ${a.id !== me.id ? `
                   <button class="btn-icon b-del" title="Hapus" data-del="user:${a.id}"><i class="bi bi-trash3"></i></button>` : ''}
                 </td>
@@ -217,7 +223,12 @@
   V.accountForm = function (query, id) {
     var role = ['admin', 'karyawan', 'customer'].includes(query.role) ? query.role : 'admin';
     var akun = id ? S.userById(id) : null;
-    if (id && !akun) { U.flash('warning', 'Akun tidak ditemukan.'); location.hash = '#/admin/akun'; return { title: 'Data Akun', nav: 'admin', active: '#/admin/akun', content: '' }; }
+    if (id && !akun) { U.flash('warning', 'Akun tidak ditemukan.'); return { redirect: '#/admin/akun' }; }
+    // Guard: admin tidak dapat menambah atau mengubah akun customer
+    if ((!id && role === 'customer') || (akun && akun.role === 'customer')) {
+      U.flash('warning', 'Admin tidak dapat menambah atau mengubah akun customer.');
+      return { redirect: '#/admin/akun?role=customer' };
+    }
     if (akun) role = akun.role;
     var roleLabel = role === 'admin' ? 'Admin' : role === 'karyawan' ? 'Karyawan' : 'Customer';
 
@@ -422,8 +433,7 @@
     var o = S.orchidById(orchidId);
     if (!o || S.catalogOfOrchid(o.id)) {
       U.flash('warning', !o ? 'Data anggrek tidak ditemukan.' : 'Anggrek ini sudah ada di katalog.');
-      location.hash = '#/admin/katalog/tambah';
-      return { title: 'Tambah Katalog', nav: 'admin', active: '#/admin/katalog', content: '' };
+      return { redirect: '#/admin/katalog/tambah' };
     }
     var html = U.pageHead('Tentukan Harga Jual', 'Anggrek terpilih akan dimasukkan ke katalog produk',
       `<a href="#/admin/katalog/tambah" class="btn-soft"><i class="bi bi-arrow-left me-1"></i> Kembali memilih</a>`) + `
@@ -484,8 +494,7 @@
     var o = c ? S.orchidById(c.orchid_id) : null;
     if (!c || !o) {
       U.flash('warning', 'Data katalog tidak ditemukan.');
-      location.hash = '#/admin/katalog';
-      return { title: 'Katalog', nav: 'admin', active: '#/admin/katalog', content: '' };
+      return { redirect: '#/admin/katalog' };
     }
     var html = U.pageHead('Ubah Harga Katalog',
       `<a class="link-plain" href="#/admin/katalog"><i class="bi bi-arrow-left"></i> Kembali ke katalog</a>`) + `
@@ -584,8 +593,7 @@
     var o = S.orderById(id);
     if (!o) {
       U.flash('warning', 'Pesanan tidak ditemukan.');
-      location.hash = '#/admin/pesanan';
-      return { title: 'Pesanan', nav: 'admin', active: '#/admin/pesanan', content: '' };
+      return { redirect: '#/admin/pesanan' };
     }
     var items = S.itemsOf(o.id);
     var customer = o.customer_id ? S.userById(o.customer_id) : null;
@@ -771,8 +779,7 @@
     var foto = id ? S.state.gallery.find(function (f) { return f.id === id; }) : null;
     if (id && !foto) {
       U.flash('warning', 'Foto tidak ditemukan.');
-      location.hash = '#/admin/galeri';
-      return { title: 'Galeri', nav: 'admin', active: '#/admin/galeri', content: '' };
+      return { redirect: '#/admin/galeri' };
     }
     var html = U.pageHead(`${foto ? 'Ubah' : 'Tambah'} Foto Galeri`,
       `<a class="link-plain" href="#/admin/galeri"><i class="bi bi-arrow-left"></i> Kembali ke galeri</a>`) + `

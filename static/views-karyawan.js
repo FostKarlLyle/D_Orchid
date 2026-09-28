@@ -160,8 +160,7 @@
     var o = id ? S.orchidById(id) : null;
     if (id && !o) {
       U.flash('warning', 'Data anggrek tidak ditemukan.');
-      location.hash = '#/karyawan/anggrek';
-      return { title: 'Data Anggrek', nav: 'karyawan', active: '#/karyawan/anggrek', content: '' };
+      return { redirect: '#/karyawan/anggrek' };
     }
     var html = U.pageHead(`${o ? 'Ubah' : 'Buat'} Data Anggrek`,
       `<a class="link-plain" href="#/karyawan/anggrek"><i class="bi bi-arrow-left"></i> Kembali ke data anggrek</a>`) + `
@@ -314,8 +313,7 @@
     var o = c ? S.orchidById(c.orchid_id) : null;
     if (!c || !o) {
       U.flash('warning', 'Data katalog tidak ditemukan.');
-      location.hash = '#/karyawan/katalog';
-      return { title: 'Katalog', nav: 'karyawan', active: '#/karyawan/katalog', content: '' };
+      return { redirect: '#/karyawan/katalog' };
     }
     var html = U.pageHead('Ubah Data Katalog',
       `<a class="link-plain" href="#/karyawan/katalog"><i class="bi bi-arrow-left"></i> Kembali ke katalog</a>`) + `

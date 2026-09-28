@@ -247,7 +247,9 @@
 
     if (route.roles === 'public') {
       if (user) { location.hash = S.roleHome(user.role); return; }
-      mount(route.view(h.query, matched.m[1] !== undefined ? Number(matched.m[1]) : undefined));
+      var pubView = route.view(h.query, matched.m[1] !== undefined ? Number(matched.m[1]) : undefined);
+      if (pubView && pubView.redirect) { location.hash = pubView.redirect; return; }
+      mount(pubView);
       return;
     }
 
@@ -262,7 +264,9 @@
     }
     if (route.to) { location.hash = route.to; return; }
 
-    mount(route.view(h.query, matched.m[1] !== undefined ? Number(matched.m[1]) : undefined));
+    var view = route.view(h.query, matched.m[1] !== undefined ? Number(matched.m[1]) : undefined);
+    if (view && view.redirect) { location.hash = view.redirect; return; }
+    mount(view);
   }
 
   /* ---------- boot ---------- */
