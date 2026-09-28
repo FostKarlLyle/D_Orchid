@@ -220,7 +220,8 @@
           var file = root.querySelector('[name=image]').files[0];
           var removeImg = root.querySelector('[name=remove_image]') && root.querySelector('[name=remove_image]').checked;
 
-          function commit(imageVal, keepOld) {
+          function commit(imageVal) {
+            var oldStock = o ? o.stock : null;
             if (o) {
               o.name = name; o.jenis = jenis; o.varietas = varietas; o.fase = fase;
               o.stock = stock; o.description = description; o.updated_at = S.now(0, 0);
@@ -235,7 +236,17 @@
               });
             }
             S.save();
-            U.flash('success', o ? 'Data anggrek berhasil diperbarui.' : 'Data anggrek "' + name + '" berhasil dibuat.');
+            // Sinkronisasi: stok yang tampil di katalog mengikuti data anggrek
+            var msg;
+            if (!o) {
+              msg = 'Data anggrek "' + name + '" berhasil dibuat.';
+            } else if (oldStock !== stock && S.catalogOfOrchid(o.id)) {
+              msg = 'Data anggrek diperbarui \u2014 stok ' + oldStock + ' \u2192 ' + stock +
+                ' pot. Stok di katalog ikut ter-update otomatis. \ud83d\udd04';
+            } else {
+              msg = 'Data anggrek berhasil diperbarui.';
+            }
+            U.flash('success', msg);
             location.hash = '#/karyawan/anggrek';
           }
           if (file) {
@@ -246,112 +257,6 @@
           } else {
             commit(null);
           }
-        };
-      }
-    };
-  };
-
-  /* ============ KATALOG (lihat & ubah) ============ */
-  V.catalog = function (query) {
-    var q = (query.q || '').toLowerCase();
-    var rows = S.state.catalog.map(function (c) {
-      var o = S.orchidById(c.orchid_id);
-      return o ? { c: c, o: o } : null;
-    }).filter(Boolean).filter(function (r) {
-      if (!q) return true;
-      return (r.o.name + ' ' + r.o.jenis + ' ' + r.o.varietas).toLowerCase().includes(q);
-    }).sort(function (a, b) { return b.c.created_at.localeCompare(a.c.created_at); });
-
-    var html = U.pageHead('Katalog Anggrek', 'Lihat dan ubah data katalog yang dipilih admin') + `
-      <div class="panel" style="margin-bottom:18px">
-        <div class="panel-pad pb-0 d-flex flex-wrap gap-3 justify-content-between align-items-center">
-          <div class="text-muted-2"><i class="bi bi-info-circle me-1"></i>
-            Penambahan katalog dilakukan oleh <b>Admin</b>. Di sini kamu bisa mengubah harga & status.</div>
-          <form class="d-flex gap-2 mb-3" data-form="cari">
-            <div class="search-box"><i class="bi bi-search"></i>
-              <input class="form-control" type="text" name="q" value="${e(query.q || '')}" placeholder="Cari nama / jenis / varietas..." /></div>
-            <button class="btn-soft" type="submit">Cari</button>
-          </form>
-        </div>
-        <div class="table-responsive mt-3">
-          <table class="table table-them align-middle">
-            <thead><tr><th>Produk</th><th>Fase</th><th>Harga</th><th>Stok</th><th>Status</th><th class="text-end">Aksi</th></tr></thead>
-            <tbody>
-            ${rows.length ? rows.map(r => `
-              <tr>
-                <td><div class="d-flex align-items-center gap-2">${U.thumb(r.o.image)}
-                  <div><div class="cell-title">${e(r.o.name)}</div>
-                  <div class="cell-sub">${e(r.o.jenis)} · ${e(r.o.varietas || '-')}</div></div></div></td>
-                <td>${U.faseBadge(r.o.fase)}</td>
-                <td class="price-tag">${e(S.rp(r.c.price))}</td>
-                <td><b>${r.o.stock}</b> pot</td>
-                <td>${r.c.is_active ? '<span class="badge bg-success">Aktif</span>' : '<span class="badge bg-secondary">Nonaktif</span>'}</td>
-                <td class="text-end">
-                  <a class="btn-icon b-edit" href="#/karyawan/katalog/${r.c.id}/ubah" title="Ubah data katalog"><i class="bi bi-pencil"></i></a>
-                </td>
-              </tr>`).join('')
-            : `<tr><td colspan="6">${U.emptyState('bi-shop', 'Belum ada data di katalog', 'Admin akan memilih data anggrekmu ke katalog.')}</td></tr>`}
-            </tbody>
-          </table>
-        </div>
-      </div>`;
-
-    return {
-      title: 'Katalog Anggrek', nav: 'karyawan', active: '#/karyawan/katalog', content: html,
-      after: function (root) {
-        root.querySelector('[data-form="cari"]').onsubmit = function (ev) {
-          ev.preventDefault();
-          var v = root.querySelector('[name=q]').value.trim();
-          location.hash = '#/karyawan/katalog' + (v ? '?q=' + encodeURIComponent(v) : '');
-        };
-      }
-    };
-  };
-
-  V.catalogEdit = function (query, id) {
-    var c = S.catalogById(id);
-    var o = c ? S.orchidById(c.orchid_id) : null;
-    if (!c || !o) {
-      U.flash('warning', 'Data katalog tidak ditemukan.');
-      return { redirect: '#/karyawan/katalog' };
-    }
-    var html = U.pageHead('Ubah Data Katalog',
-      `<a class="link-plain" href="#/karyawan/katalog"><i class="bi bi-arrow-left"></i> Kembali ke katalog</a>`) + `
-      <div class="panel panel-pad" style="max-width:640px">
-        <div class="d-flex align-items-center gap-3 mb-4 pb-3" style="border-bottom:1px solid var(--line)">
-          ${U.thumb(o.image, 'cell-thumb')}
-          <div><div class="cell-title" style="font-size:16px">${e(o.name)}</div>
-          <div class="cell-sub">${e(o.jenis)} · ${e(o.varietas || '-')}</div></div>
-        </div>
-        <form data-form="ubah">
-          <div class="mb-3"><label class="form-label">Harga Jual (Rp) *</label>
-            <div class="input-group"><span class="input-group-text">Rp</span>
-            <input type="number" name="price" class="form-control" min="1" step="1000" required value="${Math.round(c.price)}" /></div>
-            <div class="text-muted-2 mt-1">Saat ini: <b>${e(S.rp(c.price))}</b></div></div>
-          <div class="mb-4"><label class="form-label">Status Katalog</label>
-            <select name="is_active" class="form-select">
-              <option value="1" ${c.is_active ? 'selected' : ''}>Aktif — tampil di katalog customer</option>
-              <option value="0" ${c.is_active ? '' : 'selected'}>Nonaktif — sembunyikan dari customer</option>
-            </select></div>
-          <div class="d-flex gap-2">
-            <button class="btn-accent" type="submit"><i class="bi bi-check2-circle me-1"></i> Simpan Perubahan</button>
-            <a href="#/karyawan/katalog" class="btn-soft">Batal</a>
-          </div>
-        </form>
-      </div>`;
-    return {
-      title: 'Ubah Data Katalog', nav: 'karyawan', active: '#/karyawan/katalog', content: html,
-      after: function (root) {
-        root.querySelector('[data-form="ubah"]').onsubmit = function (ev) {
-          ev.preventDefault();
-          var price = Number(root.querySelector('[name=price]').value);
-          if (!price || price <= 0) return U.toast('Harga harus lebih dari 0.', 'err');
-          c.price = price;
-          c.is_active = root.querySelector('[name=is_active]').value === '1' ? 1 : 0;
-          c.updated_at = S.now(0, 0);
-          S.save();
-          U.flash('success', 'Data katalog berhasil diperbarui.');
-          location.hash = '#/karyawan/katalog';
         };
       }
     };

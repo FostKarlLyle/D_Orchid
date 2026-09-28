@@ -310,7 +310,8 @@
       <div class="panel" style="margin-bottom:18px">
         <div class="panel-pad pb-0 d-flex flex-wrap gap-3 justify-content-between align-items-center">
           <div class="text-muted-2"><i class="bi bi-info-circle me-1"></i>
-            Tekan tombol <b>+</b> untuk memilih <b>data anggrek</b> yang dibuat karyawan, lalu tentukan harga jualnya.</div>
+            Tekan tombol <b>+</b> untuk memilih <b>data anggrek</b> yang dibuat karyawan, lalu tentukan harga jualnya.
+            <b>Stok</b> pada tabel ini mengikuti data anggrek — saat karyawan memperbarui stok, katalog ikut ter-update otomatis.</div>
           <form class="d-flex gap-2 mb-3" data-form="cari">
             <div class="search-box"><i class="bi bi-search"></i>
               <input class="form-control" type="text" name="q" value="${e(query.q || '')}" placeholder="Cari nama / jenis / varietas..." /></div>

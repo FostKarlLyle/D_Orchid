@@ -181,8 +181,6 @@
     { re: /^\/karyawan\/anggrek$/, roles: ['karyawan'], view: function (q) { return VKaryawan.orchids(q); } },
     { re: /^\/karyawan\/anggrek\/tambah$/, roles: ['karyawan'], view: function (q) { return VKaryawan.orchidForm(q); } },
     { re: /^\/karyawan\/anggrek\/(\d+)\/ubah$/, roles: ['karyawan'], view: function (q, id) { return VKaryawan.orchidForm(q, id); } },
-    { re: /^\/karyawan\/katalog$/, roles: ['karyawan'], view: function (q) { return VKaryawan.catalog(q); } },
-    { re: /^\/karyawan\/katalog\/(\d+)\/ubah$/, roles: ['karyawan'], view: function (q, id) { return VKaryawan.catalogEdit(q, id); } },
 
     // customer
     { re: /^\/customer$/, roles: ['customer'], to: '#/customer/katalog' },

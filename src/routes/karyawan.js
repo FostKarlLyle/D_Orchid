@@ -142,7 +142,13 @@ router.post('/anggrek/:id/ubah', upload.single('image'), (req, res) => {
     `UPDATE orchids SET name = ?, jenis = ?, varietas = ?, fase = ?, stock = ?,
      description = ?, image = ?, updated_at = datetime('now','localtime') WHERE id = ?`
   ).run(d.name, d.jenis, d.varietas, d.fase, d.stock, d.description, image, orchid.id);
-  flash(req, 'success', 'Data anggrek berhasil diperbarui.');
+  // Sinkronisasi: stok yang tampil di katalog mengikuti data anggrek
+  const inCatalog = db.prepare('SELECT id FROM catalog WHERE orchid_id = ?').get(orchid.id);
+  if (orchid.stock !== d.stock && inCatalog) {
+    flash(req, 'success', `Data anggrek diperbarui — stok ${orchid.stock} → ${d.stock} pot. Stok di katalog ikut ter-update otomatis. 🔄`);
+  } else {
+    flash(req, 'success', 'Data anggrek berhasil diperbarui.');
+  }
   res.redirect('/karyawan/anggrek');
 });
 
@@ -172,52 +178,5 @@ function validateOrchid(b) {
   return { name, jenis, varietas, fase, stock, description };
 }
 
-/* ============================================================
-   3. KATALOG — lihat & ubah
-   ============================================================ */
-router.get('/katalog', (req, res) => {
-  const q = String(req.query.q || '').trim();
-  let sql = `
-    SELECT c.*, o.name, o.jenis, o.varietas, o.fase, o.stock, o.image
-    FROM catalog c JOIN orchids o ON o.id = c.orchid_id`;
-  const params = [];
-  if (q) {
-    sql += ' WHERE o.name LIKE ? OR o.jenis LIKE ? OR o.varietas LIKE ?';
-    params.push(`%${q}%`, `%${q}%`, `%${q}%`);
-  }
-  sql += ' ORDER BY c.created_at DESC';
-  const items = db.prepare(sql).all(...params);
-  res.render('karyawan/catalog', { title: 'Katalog Anggrek', items, q });
-});
-
-router.get('/katalog/:id/ubah', (req, res) => {
-  const item = db
-    .prepare('SELECT c.*, o.name, o.jenis, o.varietas FROM catalog c JOIN orchids o ON o.id = c.orchid_id WHERE c.id = ?')
-    .get(req.params.id);
-  if (!item) {
-    flash(req, 'warning', 'Data katalog tidak ditemukan.');
-    return res.redirect('/karyawan/katalog');
-  }
-  res.render('karyawan/catalog-edit', { title: 'Ubah Data Katalog', item });
-});
-
-router.post('/katalog/:id/ubah', (req, res) => {
-  const item = db.prepare('SELECT * FROM catalog WHERE id = ?').get(req.params.id);
-  if (!item) {
-    flash(req, 'warning', 'Data katalog tidak ditemukan.');
-    return res.redirect('/karyawan/katalog');
-  }
-  const price = Number(req.body.price);
-  if (!price || price <= 0) {
-    flash(req, 'danger', 'Harga harus lebih dari 0.');
-    return res.redirect(`/karyawan/katalog/${item.id}/ubah`);
-  }
-  const is_active = req.body.is_active === '1' ? 1 : 0;
-  db.prepare(
-    "UPDATE catalog SET price = ?, is_active = ?, updated_at = datetime('now','localtime') WHERE id = ?"
-  ).run(price, is_active, item.id);
-  flash(req, 'success', 'Data katalog berhasil diperbarui.');
-  res.redirect('/karyawan/katalog');
-});
 
 module.exports = router;

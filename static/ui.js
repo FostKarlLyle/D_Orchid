@@ -103,7 +103,6 @@
   function navKaryawan(active) {
     return '<nav class="side-nav">' +
       link('#/karyawan/anggrek', active, 'bi-flower2', 'Manajemen Data Anggrek') +
-      link('#/karyawan/katalog', active, 'bi-shop', 'Katalog Anggrek') +
       '<div class="side-label">Akun</div>' +
       link('#/karyawan/akun', active, 'bi-person-circle', 'Data Akun') +
       '</nav>';
