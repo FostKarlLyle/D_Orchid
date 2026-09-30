@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>D'Orchid — Sistem Manajemen Toko Anggrek</title>
+  <title>Login · D'Orchid</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>" />
   <link rel="stylesheet" href="static/vendor/bootstrap.min.css" />
   <link rel="stylesheet" href="static/vendor/bootstrap-icons.min.css" />
@@ -11,14 +11,61 @@
   <link rel="stylesheet" href="static/app.css" />
 </head>
 <body>
-  <div id="app"></div>
+  <div class="auth-wrap">
+    <div class="auth-hero" style="background-image:url('images/hero-login.jpg')">
+      <div class="auth-hero-inner">
+        <div class="auth-brand">
+          <div class="brand-badge" style="width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.15);display:grid;place-items:center;font-size:22px">🌸</div>
+          D'Orchid
+        </div>
+        <h1>Anggrek indah,<br>rawatan penuh cinta.</h1>
+        <p>Katalog anggrek pilihan, dirawat langsung oleh tenaga perawatan kami. Prototipe UI — tanpa server.</p>
+      </div>
+    </div>
+    <div class="auth-form-side">
+      <div class="auth-card">
+        <h2>Selamat datang 👋</h2>
+        <div class="hint">Login ke akun demo untuk melihat tampilan tiap role.</div>
+        <div id="flashSlot"></div>
+        <form data-form="login">
+          <div class="mb-3"><label class="form-label">Email</label>
+            <div class="input-group"><span class="input-group-text"><i class="bi bi-envelope"></i></span>
+            <input type="email" name="email" class="form-control" placeholder="nama@email.com" required autofocus /></div></div>
+          <div class="mb-4"><label class="form-label">Password</label>
+            <div class="input-group"><span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" name="password" class="form-control" placeholder="••••••••" required /></div></div>
+          <button class="btn-accent w-100" type="submit"><i class="bi bi-box-arrow-in-right me-1"></i> Login</button>
+        </form>
+        <div class="auth-switch">Belum punya akun? <a href="register.html" class="link-plain">Daftar sebagai Customer</a></div>
+        <div class="demo-box">
+          <b>Akun demo:</b><br>
+          Admin — <code>admin@d-orchid.id</code> / <code>admin123</code><br>
+          Karyawan — <code>karyawan@d-orchid.id</code> / <code>karyawan123</code><br>
+          Customer — <code>sari@mail.com</code> / <code>customer123</code>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="toast-app" id="toastApp"></div>
 
   <script src="static/store.js"></script>
   <script src="static/ui.js"></script>
-  <script src="static/views-admin.js"></script>
-  <script src="static/views-karyawan.js"></script>
-  <script src="static/views-customer.js"></script>
-  <script src="static/app.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.Store, U = window.UI;
+      if (S.currentUser()) { U.go(S.roleHome(S.currentUser().role)); return; }
+      document.getElementById('flashSlot').innerHTML = U.flashHTML();
+      document.querySelector('[data-form="login"]').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var email = this.elements['email'].value;
+        var pw = this.elements['password'].value;
+        var u = S.login(email, pw);
+        if (!u) { U.toast('Email atau password salah.', 'err'); return; }
+        U.flash('success', 'Selamat datang, ' + u.name + '! 🌸');
+        U.go(S.roleHome(u.role));
+      });
+    })();
+  </script>
 </body>
 </html>

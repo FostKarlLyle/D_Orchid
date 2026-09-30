@@ -23,7 +23,7 @@
           <input class="form-control" type="text" name="q" value="${e(q)}"
             placeholder="Cari nama, jenis, atau varietas..." autofocus /></div>
         <button class="btn-accent" type="submit"><i class="bi bi-search me-1"></i> Cari</button>
-        ${q ? '<a href="#/customer/katalog" class="btn-soft">Reset</a>' : ''}
+        ${q ? '<a href="customer-katalog.html" class="btn-soft">Reset</a>' : ''}
       </form>`;
 
     if (q) {
@@ -57,12 +57,12 @@
     }
 
     return {
-      title: 'Katalog Anggrek', nav: 'customer', active: '#/customer/katalog', content: html,
+      title: 'Katalog Anggrek', nav: 'customer', active: 'customer-katalog.html', content: html,
       after: function (root) {
         root.querySelector('[data-form="cari"]').onsubmit = function (ev) {
           ev.preventDefault();
           var v = root.querySelector('[name=q]').value.trim();
-          location.hash = '#/customer/katalog' + (v ? '?q=' + encodeURIComponent(v) : '');
+          location.href = 'customer-katalog.html' + (v ? '?q=' + encodeURIComponent(v) : '');
         };
         root.querySelectorAll('[data-cart]').forEach(function (btn) {
           btn.onclick = function () {
@@ -88,7 +88,7 @@
     var total = cart.reduce(function (s, i) { return s + catalogMap[i.id].price * i.qty; }, 0);
 
     var html = U.pageHead('Keranjang Belanja 🛒', 'Keranjang sementara tersimpan di browser ini',
-      `<a href="#/customer/katalog" class="btn-soft"><i class="bi bi-flower1 me-1"></i> Lanjut Belanja</a>`) +
+      `<a href="customer-katalog.html" class="btn-soft"><i class="bi bi-flower1 me-1"></i> Lanjut Belanja</a>`) +
       U.demoBanner('Versi prototipe UI — <b>checkout & transaksi antar customer–penjual dinonaktifkan</b>. Keranjang hanya mendemonstrasikan alur fiturnya saja.') + `
       <div class="panel">
         <div class="table-responsive">
@@ -121,7 +121,7 @@
           </table>
         </div>
         ${!cart.length ? U.emptyState('bi-cart-x', 'Keranjang masih kosong',
-          'Pilih anggrek favoritmu di <a class="link-plain" href="#/customer/katalog">katalog</a>.') : ''}
+          'Pilih anggrek favoritmu di <a class="link-plain" href="customer-katalog.html">katalog</a>.') : ''}
         ${cart.length ? `
         <div class="panel-pad d-flex flex-wrap gap-3 justify-content-between align-items-center" style="border-top:1px solid var(--line)">
           <div style="flex:1;min-width:240px">
@@ -134,7 +134,7 @@
       </div>`;
 
     return {
-      title: 'Keranjang Belanja', nav: 'customer', active: '#/customer/keranjang', content: html,
+      title: 'Keranjang Belanja', nav: 'customer', active: 'customer-keranjang.html', content: html,
       after: function (root) {
         root.querySelectorAll('[data-qty]').forEach(function (btn) {
           btn.onclick = function () {
@@ -177,11 +177,11 @@
       .sort(function (a, b) { return b.created_at.localeCompare(a.created_at); });
 
     var html = U.pageHead('Pesanan Saya', 'Riwayat pesanan beserta status terkininya',
-      `<a href="#/customer/katalog" class="btn-accent"><i class="bi bi-cart-plus me-1"></i> Belanja Lagi</a>`);
+      `<a href="customer-katalog.html" class="btn-accent"><i class="bi bi-cart-plus me-1"></i> Belanja Lagi</a>`);
 
     if (!orders.length) {
       html += `<div class="panel">${U.emptyState('bi-bag-x', 'Belum ada pesanan',
-        'Mulai belanja dari <a class="link-plain" href="#/customer/katalog">katalog anggrek</a>.')}</div>`;
+        'Mulai belanja dari <a class="link-plain" href="customer-katalog.html">katalog anggrek</a>.')}</div>`;
     } else {
       html += orders.map(o => {
         var items = S.itemsOf(o.id);
@@ -208,7 +208,7 @@
         </div>`;
       }).join('');
     }
-    return { title: 'Pesanan Saya', nav: 'customer', active: '#/customer/pesanan', content: html };
+    return { title: 'Pesanan Saya', nav: 'customer', active: 'customer-pesanan.html', content: html };
   };
 
   /* ============ GALERI ============ */
@@ -229,7 +229,7 @@
           </div>
         </div>`).join('') + '</div>';
     }
-    return { title: 'Galeri Anggrek', nav: 'customer', active: '#/customer/galeri', content: html };
+    return { title: 'Galeri Anggrek', nav: 'customer', active: 'customer-galeri.html', content: html };
   };
 
   /* ============ ULASAN ============ */
@@ -312,7 +312,7 @@
     }
 
     return {
-      title: 'Ulasan Saya', nav: 'customer', active: '#/customer/ulasan', content: html,
+      title: 'Ulasan Saya', nav: 'customer', active: 'customer-ulasan.html', content: html,
       after: function (root) {
         var f = root.querySelector('[data-form="ulasan"]');
         if (f) f.onsubmit = function (ev) {
@@ -389,7 +389,7 @@
       </div>`;
 
     return {
-      title: 'Data Akun', nav: 'customer', active: '#/customer/akun', content: html,
+      title: 'Data Akun', nav: 'customer', active: 'customer-akun.html', content: html,
       after: function (root) {
         root.querySelector('[data-form="akun"]').onsubmit = function (ev) {
           ev.preventDefault();

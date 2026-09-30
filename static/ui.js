@@ -1,10 +1,13 @@
 /* ============================================================
-   D'Orchid — UI helpers (shell, komponen, escape, toast)
+   D'Orchid — UI helpers (versi multipage HTML/CSS/JS)
+   Komponen, escape, toast, flash lintas halaman, shell statis.
    ============================================================ */
 (function () {
   'use strict';
 
   var S = window.Store;
+  var FLASH_KEY = 'dorchid_flash_v1';
+  var flashMem = null;
 
   /* Escape teks sebelum dimasukkan ke HTML (pengganti <%= %> EJS) */
   function e(v) {
@@ -31,9 +34,23 @@
     }, 2800);
   }
 
-  var flashMsg = null;
-  function flash(type, msg) { flashMsg = { type: type, msg: msg }; }
-  function takeFlash() { var f = flashMsg; flashMsg = null; return f; }
+  /* ---------- flash lintas halaman (tersimpan di localStorage) ---------- */
+  function flash(type, msg) {
+    flashMem = { type: type, msg: msg };
+    try { window.localStorage.setItem(FLASH_KEY, JSON.stringify(flashMem)); } catch (err) { /* mode memori */ }
+  }
+  function takeFlash() {
+    var f = flashMem;
+    flashMem = null;
+    try {
+      var raw = window.localStorage.getItem(FLASH_KEY);
+      if (raw) {
+        window.localStorage.removeItem(FLASH_KEY);
+        f = JSON.parse(raw);
+      }
+    } catch (err) { /* abaikan */ }
+    return f;
+  }
 
   /* ---------- komponen ---------- */
   function statusBadge(s) {
@@ -80,74 +97,52 @@
     return '<div class="demo-banner"><i class="bi bi-info-circle-fill me-1"></i>' + text + '</div>';
   }
 
-  /* ---------- navigasi sidebar ---------- */
-  function link(href, active, icon, label, extra) {
-    return '<a class="side-link' + (active === href ? ' active' : '') + '" href="' + href + '">' +
-      '<i class="bi ' + icon + '"></i><span>' + label + '</span>' + (extra || '') + '</a>';
+  /* ---------- util: baca file gambar → dataURL (untuk file://) ---------- */
+  function readFileData(file, cb) {
+    if (!file) return cb(null, 'File tidak ditemukan.');
+    if (file.size > 700 * 1024) return cb(null, 'File terlalu besar (maks 700 KB).');
+    var reader = new FileReader();
+    reader.onload = function () { cb(reader.result, null); };
+    reader.onerror = function () { cb(null, 'Gagal membaca file.'); };
+    reader.readAsDataURL(file);
   }
-  function navAdmin(active) {
-    var pending = S.state.orders.filter(function (o) { return o.status === 'pending'; }).length;
-    var pendingBadge = pending > 0 ? '<span class="side-count">' + pending + '</span>' : '';
-    return '<nav class="side-nav">' +
-      link('#/admin', active, 'bi-grid-1x2-fill', 'Dashboard') +
-      '<div class="side-label">Manajemen</div>' +
-      link('#/admin/akun', active, 'bi-people-fill', 'Data Akun') +
-      link('#/admin/katalog', active, 'bi-shop', 'Katalog Anggrek') +
-      link('#/admin/pesanan', active, 'bi-bag-check-fill', 'Pesanan', pendingBadge) +
-      link('#/admin/ulasan', active, 'bi-star-fill', 'Ulasan') +
-      link('#/admin/galeri', active, 'bi-images', 'Galeri') +
-      '<div class="side-label">Analitik</div>' +
-      link('#/admin/laporan', active, 'bi-file-earmark-bar-graph-fill', 'Laporan Penjualan') +
-      '</nav>';
-  }
-  function navKaryawan(active) {
-    return '<nav class="side-nav">' +
-      link('#/karyawan/anggrek', active, 'bi-flower2', 'Manajemen Data Anggrek') +
-      '<div class="side-label">Akun</div>' +
-      link('#/karyawan/akun', active, 'bi-person-circle', 'Data Akun') +
-      '</nav>';
-  }
-  function navCustomer(active) {
-    var n = S.state.cart.reduce(function (s, i) { return s + i.qty; }, 0);
-    var badge = n > 0 ? '<span class="side-count">' + n + '</span>' : '';
-    return '<nav class="side-nav">' +
-      link('#/customer/katalog', active, 'bi-flower1', 'Katalog Anggrek') +
-      link('#/customer/keranjang', active, 'bi-cart3', 'Keranjang', badge) +
-      link('#/customer/pesanan', active, 'bi-bag-check-fill', 'Pesanan Saya') +
-      link('#/customer/galeri', active, 'bi-images', 'Galeri') +
-      link('#/customer/ulasan', active, 'bi-star-fill', 'Ulasan') +
-      '<div class="side-label">Akun</div>' +
-      link('#/customer/akun', active, 'bi-person-circle', 'Data Akun') +
-      '</nav>';
+  window.readFileData = readFileData;
+
+  /* ---------- navigasi antar-halaman ---------- */
+  function go(url) {
+    try { document.dispatchEvent(new CustomEvent('dorchid:go', { detail: url })); } catch (err) { /* opsional */ }
+    location.href = url;
   }
 
-  /* ---------- shell ---------- */
-  function shell(opts, bodyHTML) {
-    var user = S.currentUser();
-    var navHTML = opts.nav === 'admin' ? navAdmin(opts.active)
-      : opts.nav === 'karyawan' ? navKaryawan(opts.active)
-      : navCustomer(opts.active);
-    return '<div class="layout">' +
-      '<aside class="sidebar" id="sidebar">' +
-        '<div class="brand"><div class="brand-badge">🌸</div><div>' +
-          '<div class="brand-name">D\'Orchid</div><div class="brand-sub">Orchid Shop</div>' +
-        '</div></div>' + navHTML +
-        '<div class="sidebar-foot"><i class="bi bi-flower1"></i> © 2026 D\'Orchid</div>' +
-      '</aside>' +
-      '<div class="sidebar-overlay" id="sidebarOverlay"></div>' +
-      '<div class="main"><header class="topbar">' +
-        '<button class="icon-btn" id="sidebarToggle" aria-label="Buka menu"><i class="bi bi-list"></i></button>' +
-        '<div class="topbar-title">' + e(opts.title) + '</div>' +
-        '<div class="topbar-user">' +
-          '<div class="topbar-meta"><div class="topbar-name">' + e(user.name) + '</div>' +
-          '<div class="topbar-role">' + e(S.ROLES[user.role]) + '</div></div>' +
-          '<div class="avatar">' + e(user.name.trim().charAt(0).toUpperCase()) + '</div>' +
-          '<button class="btn-logout" title="Log Out" data-action="logout"><i class="bi bi-box-arrow-right"></i></button>' +
-        '</div></header>' +
-      '<main class="content">' + flashHTML() + bodyHTML + '</main></div></div>';
+  /* ---------- shell statis (sidebar/topbar yang ada di tiap file HTML) ---------- */
+  function fillUser() {
+    var u = S.currentUser();
+    if (!u) return;
+    var n = document.getElementById('userName');
+    if (n) n.textContent = u.name;
+    var r = document.getElementById('userRole');
+    if (r) r.textContent = S.ROLES[u.role];
+    var a = document.getElementById('userAvatar');
+    if (a) a.textContent = u.name.trim().charAt(0).toUpperCase();
   }
 
-  function bindShell() {
+  function updateBadges() {
+    var pend = S.state.orders.filter(function (o) { return o.status === 'pending'; }).length;
+    var b1 = document.querySelector('[data-badge="pending"]');
+    if (b1) { b1.textContent = pend; b1.style.display = pend > 0 ? '' : 'none'; }
+    var cart = S.state.cart.reduce(function (s, i) { return s + i.qty; }, 0);
+    var b2 = document.querySelector('[data-badge="cart"]');
+    if (b2) { b2.textContent = cart; b2.style.display = cart > 0 ? '' : 'none'; }
+  }
+
+  function bindAlerts() {
+    var btns = document.querySelectorAll('.app-alert [data-dismiss]');
+    Array.prototype.forEach.call(btns, function (btn) {
+      btn.onclick = function () { btn.closest('.alert').remove(); };
+    });
+  }
+
+  function bindStaticShell() {
     var toggle = document.getElementById('sidebarToggle');
     var sidebar = document.getElementById('sidebar');
     var overlay = document.getElementById('sidebarOverlay');
@@ -163,18 +158,20 @@
         if (overlay) overlay.classList.remove('show');
       };
     }
-    var logoutBtn = document.querySelector('[data-action="logout"]');
+    var logoutBtn = document.getElementById('btnLogout');
     if (logoutBtn) {
       logoutBtn.onclick = function () {
-        if (confirm('Keluar dari akun ' + S.currentUser().name + '?')) {
+        var u = S.currentUser();
+        if (u && confirm('Keluar dari akun ' + u.name + '?')) {
           S.logout();
-          toast('Berhasil logout. Sampai jumpa! 👋');
-          location.hash = '#/login';
+          flash('success', 'Berhasil logout. Sampai jumpa! 👋');
+          go('index.html');
         }
       };
     }
-    var closeAlert = document.querySelector('.app-alert [data-dismiss]');
-    if (closeAlert) closeAlert.onclick = function () { closeAlert.closest('.alert').remove(); };
+    fillUser();
+    updateBadges();
+    bindAlerts();
   }
 
   window.UI = {
@@ -182,6 +179,7 @@
     statusBadge: statusBadge, faseBadge: faseBadge, stockBadge: stockBadge,
     thumb: thumb, stars: stars, emptyState: emptyState, pageHead: pageHead,
     flashHTML: flashHTML, demoBanner: demoBanner,
-    shell: shell, bindShell: bindShell
+    go: go, fillUser: fillUser, updateBadges: updateBadges, bindAlerts: bindAlerts,
+    bindStaticShell: bindStaticShell
   };
 })();

@@ -46,7 +46,7 @@
       </div>`;
 
     return {
-      title: 'Data Akun', nav: 'karyawan', active: '#/karyawan/akun', content: html,
+      title: 'Data Akun', nav: 'karyawan', active: 'karyawan-akun.html', content: html,
       after: function (root) {
         root.querySelector('[data-form="akun"]').onsubmit = function (ev) {
           ev.preventDefault();
@@ -83,7 +83,7 @@
     }).sort(function (a, b) { return b.created_at.localeCompare(a.created_at); });
 
     var html = U.pageHead('Manajemen Data Anggrek', 'Buat, lihat, ubah, dan hapus data anggrek yang dirawat',
-      `<a href="#/karyawan/anggrek/tambah" class="btn-accent"><i class="bi bi-plus-lg me-1"></i> Buat Data Anggrek</a>`) + `
+      `<a href="karyawan-anggrek-tambah.html" class="btn-accent"><i class="bi bi-plus-lg me-1"></i> Buat Data Anggrek</a>`) + `
       <div class="panel" style="margin-bottom:18px">
         <div class="panel-pad pb-0 d-flex flex-wrap gap-3 justify-content-between align-items-center">
           <div class="text-muted-2"><i class="bi bi-lightbulb text-warning me-1"></i>
@@ -117,7 +117,7 @@
                   : '<span class="badge bg-secondary">Belum dipilih admin</span>'}</td>
                 <td class="cell-sub">${e(S.fmtDate(o.updated_at))}</td>
                 <td class="text-end">
-                  <a class="btn-icon b-edit" href="#/karyawan/anggrek/${o.id}/ubah" title="Ubah"><i class="bi bi-pencil"></i></a>
+                  <a class="btn-icon b-edit" href="karyawan-anggrek-ubah.html?id=${o.id}" title="Ubah"><i class="bi bi-pencil"></i></a>
                   <button class="btn-icon b-del" title="Hapus" data-del="${o.id}"><i class="bi bi-trash3"></i></button>
                 </td>
               </tr>`;
@@ -129,7 +129,7 @@
       </div>`;
 
     return {
-      title: 'Manajemen Data Anggrek', nav: 'karyawan', active: '#/karyawan/anggrek', content: html,
+      title: 'Manajemen Data Anggrek', nav: 'karyawan', active: 'karyawan-anggrek.html', content: html,
       after: function (root) {
         root.querySelector('[data-form="filter"]').onsubmit = function (ev) {
           ev.preventDefault();
@@ -138,7 +138,7 @@
           var parts = [];
           if (qq) parts.push('q=' + encodeURIComponent(qq));
           if (ff) parts.push('fase=' + encodeURIComponent(ff));
-          location.hash = '#/karyawan/anggrek' + (parts.length ? '?' + parts.join('&') : '');
+          location.href = 'karyawan-anggrek.html' + (parts.length ? '?' + parts.join('&') : '');
         };
         root.querySelectorAll('[data-del]').forEach(function (btn) {
           btn.onclick = function () {
@@ -160,10 +160,10 @@
     var o = id ? S.orchidById(id) : null;
     if (id && !o) {
       U.flash('warning', 'Data anggrek tidak ditemukan.');
-      return { redirect: '#/karyawan/anggrek' };
+      return { redirect: 'karyawan-anggrek.html' };
     }
     var html = U.pageHead(`${o ? 'Ubah' : 'Buat'} Data Anggrek`,
-      `<a class="link-plain" href="#/karyawan/anggrek"><i class="bi bi-arrow-left"></i> Kembali ke data anggrek</a>`) + `
+      `<a class="link-plain" href="karyawan-anggrek.html"><i class="bi bi-arrow-left"></i> Kembali ke data anggrek</a>`) + `
       <div class="panel panel-pad" style="max-width:820px">
         <form data-form="anggrek">
           <div class="row g-3">
@@ -197,13 +197,13 @@
           </div>
           <div class="d-flex gap-2 mt-4">
             <button class="btn-accent" type="submit"><i class="bi bi-check2-circle me-1"></i> ${o ? 'Simpan Perubahan' : 'Buat Data Anggrek'}</button>
-            <a href="#/karyawan/anggrek" class="btn-soft">Batal</a>
+            <a href="karyawan-anggrek.html" class="btn-soft">Batal</a>
           </div>
         </form>
       </div>`;
 
     return {
-      title: o ? 'Ubah Data Anggrek' : 'Buat Data Anggrek', nav: 'karyawan', active: '#/karyawan/anggrek', content: html,
+      title: o ? 'Ubah Data Anggrek' : 'Buat Data Anggrek', nav: 'karyawan', active: 'karyawan-anggrek.html', content: html,
       after: function (root) {
         root.querySelector('[data-form="anggrek"]').onsubmit = function (ev) {
           ev.preventDefault();
@@ -247,7 +247,7 @@
               msg = 'Data anggrek berhasil diperbarui.';
             }
             U.flash('success', msg);
-            location.hash = '#/karyawan/anggrek';
+            location.href = 'karyawan-anggrek.html';
           }
           if (file) {
             window.readFileData(file, function (dataUrl, err) {

@@ -9,7 +9,7 @@ Tersedia **2 versi**:
 | **Static (utama)** — `index.html` | Tanpa server, buka langsung di browser | Demo UI + alur fitur per role |
 | Server (opsional) — `npm start` | Node.js 22+ | Backend penuh dengan data tersimpan di SQLite |
 
-> **Versi static**: transaksi antara customer & penjual **dinonaktifkan** (checkout & pembuatan pesanan) — sesuai kebutuhan prototipe UI. Fitur lain (login, CRUD, pencarian, katalog `+`, balas ulasan, laporan + unduh CSV) tetap berfungsi. Data demo disimpan di `localStorage` browser.
+> **Versi static**: website **HTML + CSS + JS murni, multi-halaman** — tiap tampilan adalah file `.html` sendiri dengan navigasi tautan biasa (bukan SPA). Transaksi antara customer & penjual **dinonaktifkan** (checkout & pembuatan pesanan) — sesuai kebutuhan prototipe UI. Fitur lain (login, CRUD, pencarian, katalog `+`, balas ulasan, laporan + unduh CSV) tetap berfungsi. Data demo disimpan di `localStorage` browser.
 
 ---
 
@@ -37,21 +37,27 @@ Reset data demo: buka `index.html` lalu jalankan di DevTools Console:
 - **Customer** — Register, Katalog + **pencarian nama/jenis/varietas**, Keranjang (demo, tanpa checkout), Pesanan Saya, Galeri, Ulasan (beri/hapus), Data Akun
 - ❌ Dinonaktifkan: checkout customer & pembuatan pesanan admin (prototipe UI saja)
 
-### Struktur versi static
+### Struktur versi static (multi-halaman)
 
 ```
-index.html          # entry — klik ganda untuk membuka
+index.html            # halaman Login (entry — klik ganda untuk membuka)
+register.html         # registrasi customer
+admin-*.html          # 15 halaman admin (dashboard, akun, katalog, pesanan, ulasan, galeri, laporan + form)
+karyawan-*.html       # 4 halaman karyawan (data anggrek + form, data akun)
+customer-*.html       # 6 halaman customer (katalog, keranjang, pesanan, galeri, ulasan, akun)
 static/
-  vendor/           # Bootstrap + Bootstrap Icons (lokal, jalan offline)
-  store.js          # seed data demo + localStorage CRUD
-  ui.js             # shell layout, komponen, escape, toast
-  views-admin.js    # semua halaman admin
-  views-karyawan.js # semua halaman karyawan
-  views-customer.js # semua halaman customer
-  app.js            # hash router + login/register + boot
-public/css/style.css# tema utama (dipakai kedua versi)
-images/             # foto seed
+  vendor/             # Bootstrap + Bootstrap Icons (lokal, jalan offline)
+  store.js            # seed data demo + localStorage CRUD
+  ui.js               # komponen, escape, toast, flash lintas halaman, shell statis
+  views-admin.js      # konten & interaksi halaman admin
+  views-karyawan.js   # konten & interaksi halaman karyawan
+  views-customer.js   # konten & interaksi halaman customer
+  page.js             # bootstrap tiap halaman: guard sesi/role, render view ke #view
+public/css/style.css  # tema utama (dipakai kedua versi)
+images/               # foto seed
 ```
+
+Setiap halaman punya sidebar/topbar HTML statis (navigasi `<a href>` asli), lalu `page.js` menjaga sesi/role dan mengisi konten dinamis dari `views-*.js`. Query parameter memakai `?…` (contoh: `admin-pesanan-detail.html?id=8`).
 
 ---
 

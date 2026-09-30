@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Register · D'Orchid</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>" />
+  <link rel="stylesheet" href="static/vendor/bootstrap.min.css" />
+  <link rel="stylesheet" href="static/vendor/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="public/css/style.css" />
+  <link rel="stylesheet" href="static/app.css" />
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="auth-hero" style="background-image:url('images/hero-login.jpg')">
+      <div class="auth-hero-inner">
+        <div class="auth-brand">
+          <div class="brand-badge" style="width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.15);display:grid;place-items:center;font-size:22px">🌸</div>
+          D'Orchid
+        </div>
+        <h1>Gabung dan mulai<br>koleksi anggrekmu.</h1>
+        <p>Daftar akun customer untuk menjelajahi katalog dan memberi ulasan.</p>
+      </div>
+    </div>
+    <div class="auth-form-side">
+      <div class="auth-card">
+        <h2>Daftar Akun 🌱</h2>
+        <div class="hint">Registrasi khusus customer.</div>
+        <div id="flashSlot"></div>
+        <form data-form="register">
+          <div class="mb-3"><label class="form-label">Nama Lengkap</label>
+            <input type="text" name="name" class="form-control" required autofocus placeholder="Nama kamu" /></div>
+          <div class="mb-3"><label class="form-label">Email</label>
+            <input type="email" name="email" class="form-control" required placeholder="nama@email.com" /></div>
+          <div class="row g-2 mb-3">
+            <div class="col-sm-6"><label class="form-label">No. HP</label>
+              <input type="text" name="phone" class="form-control" placeholder="08xx-xxxx-xxxx" /></div>
+            <div class="col-sm-6"><label class="form-label">Password</label>
+              <input type="password" name="password" class="form-control" required minlength="6" placeholder="min. 6 karakter" /></div>
+          </div>
+          <div class="mb-3"><label class="form-label">Alamat</label>
+            <input type="text" name="address" class="form-control" placeholder="Alamat pengiriman" /></div>
+          <div class="mb-4"><label class="form-label">Konfirmasi Password</label>
+            <input type="password" name="confirm" class="form-control" required placeholder="Ulangi password" /></div>
+          <button class="btn-accent w-100" type="submit"><i class="bi bi-person-plus me-1"></i> Daftar Sekarang</button>
+        </form>
+        <div class="auth-switch">Sudah punya akun? <a href="index.html" class="link-plain">Login di sini</a></div>
+      </div>
+    </div>
+  </div>
+  <div class="toast-app" id="toastApp"></div>
+
+  <script src="static/store.js"></script>
+  <script src="static/ui.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.Store, U = window.UI;
+      if (S.currentUser()) { U.go(S.roleHome(S.currentUser().role)); return; }
+      document.getElementById('flashSlot').innerHTML = U.flashHTML();
+      document.querySelector('[data-form="register"]').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var form = this;
+        var val = function (n) { return form.elements[n].value.trim(); };
+        var data = {
+          name: val('name'), email: val('email').toLowerCase(), phone: val('phone'),
+          address: val('address'), password: form.elements['password'].value
+        };
+        var confirm2 = form.elements['confirm'].value;
+        if (!data.name || !data.email || !data.password) { U.toast('Nama, email, dan password wajib diisi.', 'err'); return; }
+        if (data.password.length < 6) { U.toast('Password minimal 6 karakter.', 'err'); return; }
+        if (data.password !== confirm2) { U.toast('Konfirmasi password tidak sama.', 'err'); return; }
+        var res = S.register(data);
+        if (res.error) { U.toast(res.error, 'err'); return; }
+        U.flash('success', 'Registrasi berhasil! Selamat berbelanja 🌸');
+        U.go(S.roleHome(res.user.role));
+      });
+    })();
+  </script>
+</body>
+</html>

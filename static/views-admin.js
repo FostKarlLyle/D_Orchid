@@ -118,19 +118,19 @@
             ${recent.length ? recent.map(o => `
               <div class="mb-3 pb-3" style="border-bottom:1px solid var(--line)">
                 <div class="order-head">
-                  <a class="link-plain" href="#/admin/pesanan/${o.id}">#${o.id} — ${e(o.customer_name)}</a>
+                  <a class="link-plain" href="admin-pesanan-detail.html?id=${o.id}">#${o.id} — ${e(o.customer_name)}</a>
                   ${U.statusBadge(o.status)}
                 </div>
                 <div class="cell-sub mt-1">${e(S.fmtDate(o.created_at))}</div>
                 <div class="price-tag mt-1">${e(S.rp(o.total))}</div>
               </div>`).join('')
             : U.emptyState('bi-bag', 'Belum ada pesanan')}
-            <a href="#/admin/pesanan" class="btn-soft d-inline-block text-decoration-none">Lihat semua pesanan <i class="bi bi-arrow-right"></i></a>
+            <a href="admin-pesanan.html" class="btn-soft d-inline-block text-decoration-none">Lihat semua pesanan <i class="bi bi-arrow-right"></i></a>
           </div>
         </div>
       </div>`;
 
-    return { title: 'Dashboard', nav: 'admin', active: '#/admin', content: html };
+    return { title: 'Dashboard', nav: 'admin', active: 'admin-dashboard.html', content: html };
   };
 
   /* ============ DATA AKUN ============ */
@@ -151,14 +151,14 @@
     var canManage = role !== 'customer'; // admin tidak boleh menambah/mengubah akun customer
     var html = U.pageHead('Data Akun', 'Kelola akun admin, karyawan, dan customer',
       canManage
-        ? `<a href="#/admin/akun/tambah?role=${role}" class="btn-accent"><i class="bi bi-person-plus-fill me-1"></i> Tambah Akun ${roleLabel}</a>`
+        ? `<a href="admin-akun-tambah.html?role=${role}" class="btn-accent"><i class="bi bi-person-plus-fill me-1"></i> Tambah Akun ${roleLabel}</a>`
         : '') + (role === 'customer'
         ? U.demoBanner('Akun <b>customer</b> hanya dapat <b>dilihat</b> oleh admin — penambahan & perubahan akun customer dinonaktifkan.') : '') + `
       <div class="panel" style="margin-bottom:18px">
         <div class="panel-pad d-flex flex-wrap gap-3 align-items-center justify-content-between">
           <div class="pill-tabs">
             ${['admin', 'karyawan', 'customer'].map(r => `
-              <a href="#/admin/akun?role=${r}" class="${role === r ? 'active' : ''}">
+              <a href="admin-akun.html?role=${r}" class="${role === r ? 'active' : ''}">
                 ${r.charAt(0).toUpperCase() + r.slice(1)} <span class="qty-pill">${counts[r]}</span></a>`).join('')}
           </div>
           <form class="d-flex gap-2" data-form="akun-search">
@@ -182,7 +182,7 @@
                 <td class="cell-sub">${e(S.fmtDateOnly(a.created_at))}</td>
                 <td class="text-end">
                   ${a.role !== 'customer'
-                    ? `<a class="btn-icon b-edit" href="#/admin/akun/${a.id}/ubah" title="Ubah"><i class="bi bi-pencil"></i></a>`
+                    ? `<a class="btn-icon b-edit" href="admin-akun-ubah.html?id=${a.id}" title="Ubah"><i class="bi bi-pencil"></i></a>`
                     : ''}
                   ${a.id !== me.id ? `
                   <button class="btn-icon b-del" title="Hapus" data-del="user:${a.id}"><i class="bi bi-trash3"></i></button>` : ''}
@@ -195,15 +195,15 @@
       </div>`;
 
     return {
-      title: 'Data Akun', nav: 'admin', active: '#/admin/akun', content: html,
+      title: 'Data Akun', nav: 'admin', active: 'admin-akun.html', content: html,
       after: function (root) {
         var f = root.querySelector('[data-form="akun-search"]');
         if (f) f.onsubmit = function (ev) {
           ev.preventDefault();
           var role2 = f.role.value, q2 = f.q.value.trim();
-          location.hash = '#/admin/akun?role=' + role2 + (q2 ? '&q=' + encodeURIComponent(q2) : '');
+          location.href = 'admin-akun.html?role=' + role2 + (q2 ? '&q=' + encodeURIComponent(q2) : '');
         };
-        root.querySelectorAll('[data-del="user"]').forEach(function (btn) {
+        root.querySelectorAll('[data-del^="user:"]').forEach(function (btn) {
           btn.onclick = function () {
             var id = Number(btn.getAttribute('data-del').split(':')[1]);
             var u = S.userById(id);
@@ -212,7 +212,7 @@
             S.save();
             U.toast('Akun "' + u.name + '" dihapus.');
             U.flash('success', 'Akun "' + u.name + '" berhasil dihapus.');
-            location.hash = '#/admin/akun?role=' + u.role;
+            location.href = 'admin-akun.html?role=' + u.role;
             App.render();
           };
         });
@@ -223,17 +223,17 @@
   V.accountForm = function (query, id) {
     var role = ['admin', 'karyawan', 'customer'].includes(query.role) ? query.role : 'admin';
     var akun = id ? S.userById(id) : null;
-    if (id && !akun) { U.flash('warning', 'Akun tidak ditemukan.'); return { redirect: '#/admin/akun' }; }
+    if (id && !akun) { U.flash('warning', 'Akun tidak ditemukan.'); return { redirect: 'admin-akun.html' }; }
     // Guard: admin tidak dapat menambah atau mengubah akun customer
     if ((!id && role === 'customer') || (akun && akun.role === 'customer')) {
       U.flash('warning', 'Admin tidak dapat menambah atau mengubah akun customer.');
-      return { redirect: '#/admin/akun?role=customer' };
+      return { redirect: 'admin-akun.html?role=customer' };
     }
     if (akun) role = akun.role;
     var roleLabel = role === 'admin' ? 'Admin' : role === 'karyawan' ? 'Karyawan' : 'Customer';
 
     var html = U.pageHead(`${akun ? 'Ubah' : 'Tambah'} Akun ${roleLabel}`,
-      `<a class="link-plain" href="#/admin/akun?role=${role}"><i class="bi bi-arrow-left"></i> Kembali ke data akun</a>`) + `
+      `<a class="link-plain" href="admin-akun.html?role=${role}"><i class="bi bi-arrow-left"></i> Kembali ke data akun</a>`) + `
       <div class="panel panel-pad" style="max-width:760px">
         <form data-form="akun" class="row g-3">
           ${akun ? '' : `<input type="hidden" name="role" value="${e(role)}" />`}
@@ -249,13 +249,13 @@
             <input type="text" name="address" class="form-control" value="${e(akun ? akun.address : '')}" /></div>
           <div class="col-12 d-flex gap-2">
             <button class="btn-accent" type="submit"><i class="bi bi-check2-circle me-1"></i> ${akun ? 'Simpan Perubahan' : 'Tambah Akun'}</button>
-            <a href="#/admin/akun?role=${e(role)}" class="btn-soft">Batal</a>
+            <a href="admin-akun.html?role=${e(role)}" class="btn-soft">Batal</a>
           </div>
         </form>
       </div>`;
 
     return {
-      title: akun ? 'Ubah Akun' : 'Tambah Akun', nav: 'admin', active: '#/admin/akun', content: html,
+      title: akun ? 'Ubah Akun' : 'Tambah Akun', nav: 'admin', active: 'admin-akun.html', content: html,
       after: function (root) {
         root.querySelector('[data-form="akun"]').onsubmit = function (ev) {
           ev.preventDefault();
@@ -284,7 +284,7 @@
           S.save();
           U.toast('Akun berhasil disimpan.', 'ok');
           U.flash('success', akun ? 'Akun berhasil diperbarui.' : 'Akun berhasil ditambahkan.');
-          location.hash = '#/admin/akun?role=' + (akun ? akun.role : root.querySelector('[name=role]').value);
+          location.href = 'admin-akun.html?role=' + (akun ? akun.role : root.querySelector('[name=role]').value);
         };
       }
     };
@@ -306,7 +306,7 @@
 
     var html = U.pageHead('Katalog Anggrek',
       'Anggrek yang dipilih dari data tenaga kerja untuk dijual ke customer',
-      `<a href="#/admin/katalog/tambah" class="btn-accent" style="font-size:16px;padding:10px 22px"><i class="bi bi-plus-lg" style="font-weight:900"></i> Tambah ke Katalog</a>`) + `
+      `<a href="admin-katalog-tambah.html" class="btn-accent" style="font-size:16px;padding:10px 22px"><i class="bi bi-plus-lg" style="font-weight:900"></i> Tambah ke Katalog</a>`) + `
       <div class="panel" style="margin-bottom:18px">
         <div class="panel-pad pb-0 d-flex flex-wrap gap-3 justify-content-between align-items-center">
           <div class="text-muted-2"><i class="bi bi-info-circle me-1"></i>
@@ -333,7 +333,7 @@
                 <td>${r.rc ? `<span class="stars">★ ${r.avg}</span> <span class="cell-sub">(${r.rc})</span>` : '<span class="cell-sub">Belum ada ulasan</span>'}</td>
                 <td>${r.c.is_active ? '<span class="badge bg-success">Aktif</span>' : '<span class="badge bg-secondary">Nonaktif</span>'}</td>
                 <td class="text-end">
-                  <a class="btn-icon b-edit" href="#/admin/katalog/${r.c.id}/ubah" title="Ubah harga"><i class="bi bi-pencil"></i></a>
+                  <a class="btn-icon b-edit" href="admin-katalog-ubah.html?id=${r.c.id}" title="Ubah harga"><i class="bi bi-pencil"></i></a>
                   <button class="btn-icon b-del" title="Hapus dari katalog" data-del="catalog:${r.c.id}"><i class="bi bi-trash3"></i></button>
                 </td>
               </tr>`).join('')
@@ -344,14 +344,14 @@
       </div>`;
 
     return {
-      title: 'Katalog Anggrek', nav: 'admin', active: '#/admin/katalog', content: html,
+      title: 'Katalog Anggrek', nav: 'admin', active: 'admin-katalog.html', content: html,
       after: function (root) {
         root.querySelector('[data-form="cari"]').onsubmit = function (ev) {
           ev.preventDefault();
           var v = root.querySelector('[name=q]').value.trim();
-          location.hash = '#/admin/katalog' + (v ? '?q=' + encodeURIComponent(v) : '');
+          location.href = 'admin-katalog.html' + (v ? '?q=' + encodeURIComponent(v) : '');
         };
-        root.querySelectorAll('[data-del="catalog"]').forEach(function (btn) {
+        root.querySelectorAll('[data-del^="catalog:"]').forEach(function (btn) {
           btn.onclick = function () {
             var id = Number(btn.getAttribute('data-del').split(':')[1]);
             var c = S.catalogById(id);
@@ -378,7 +378,7 @@
 
     var html = U.pageHead('Pilih Data Anggrek',
       'Data anggrek dibuat oleh tenaga perawatan (karyawan) — pilih mana yang mau dijual di katalog',
-      `<a href="#/admin/katalog" class="btn-soft"><i class="bi bi-arrow-left me-1"></i> Kembali ke Katalog</a>`) + `
+      `<a href="admin-katalog.html" class="btn-soft"><i class="bi bi-arrow-left me-1"></i> Kembali ke Katalog</a>`) + `
       <div class="panel" style="margin-bottom:18px">
         <div class="panel-pad pb-0 d-flex flex-wrap gap-3 justify-content-between align-items-center">
           <div class="text-muted-2"><i class="bi bi-lightbulb text-warning me-1"></i>
@@ -407,8 +407,8 @@
                 <td class="text-end">
                   ${r.cat
                     ? `<span class="badge bg-success"><i class="bi bi-check-lg"></i> Sudah di katalog</span>
-                       <a class="btn-icon b-eye" href="#/admin/katalog" title="Lihat katalog"><i class="bi bi-eye"></i></a>`
-                    : `<a class="btn-accent" href="#/admin/katalog/tambah/${r.o.id}" style="padding:8px 16px;font-size:13.5px"><i class="bi bi-plus-lg"></i> Pilih</a>`}
+                       <a class="btn-icon b-eye" href="admin-katalog.html" title="Lihat katalog"><i class="bi bi-eye"></i></a>`
+                    : `<a class="btn-accent" href="admin-katalog-harga.html?id=${r.o.id}" style="padding:8px 16px;font-size:13.5px"><i class="bi bi-plus-lg"></i> Pilih</a>`}
                 </td>
               </tr>`;
             }).join('')
@@ -419,12 +419,12 @@
       </div>`;
 
     return {
-      title: 'Tambah Katalog', nav: 'admin', active: '#/admin/katalog', content: html,
+      title: 'Tambah Katalog', nav: 'admin', active: 'admin-katalog.html', content: html,
       after: function (root) {
         root.querySelector('[data-form="cari"]').onsubmit = function (ev) {
           ev.preventDefault();
           var v = root.querySelector('[name=q]').value.trim();
-          location.hash = '#/admin/katalog/tambah' + (v ? '?q=' + encodeURIComponent(v) : '');
+          location.href = 'admin-katalog-tambah.html' + (v ? '?q=' + encodeURIComponent(v) : '');
         };
       }
     };
@@ -434,10 +434,10 @@
     var o = S.orchidById(orchidId);
     if (!o || S.catalogOfOrchid(o.id)) {
       U.flash('warning', !o ? 'Data anggrek tidak ditemukan.' : 'Anggrek ini sudah ada di katalog.');
-      return { redirect: '#/admin/katalog/tambah' };
+      return { redirect: 'admin-katalog-tambah.html' };
     }
     var html = U.pageHead('Tentukan Harga Jual', 'Anggrek terpilih akan dimasukkan ke katalog produk',
-      `<a href="#/admin/katalog/tambah" class="btn-soft"><i class="bi bi-arrow-left me-1"></i> Kembali memilih</a>`) + `
+      `<a href="admin-katalog-tambah.html" class="btn-soft"><i class="bi bi-arrow-left me-1"></i> Kembali memilih</a>`) + `
       <div class="grid-2-1">
         <div class="panel panel-pad">
           <div class="panel-title"><i class="bi bi-tag-fill"></i> Formulir Katalog</div>
@@ -451,7 +451,7 @@
               <input class="form-control" value="Aktif — langsung tampil di katalog customer" disabled /></div>
             <div class="d-flex gap-2">
               <button class="btn-accent" type="submit"><i class="bi bi-cart-plus me-1"></i> Tambahkan ke Katalog</button>
-              <a href="#/admin/katalog/tambah" class="btn-soft">Batal</a>
+              <a href="admin-katalog-tambah.html" class="btn-soft">Batal</a>
             </div>
           </form>
         </div>
@@ -472,7 +472,7 @@
       </div>`;
 
     return {
-      title: 'Tentukan Harga', nav: 'admin', active: '#/admin/katalog', content: html,
+      title: 'Tentukan Harga', nav: 'admin', active: 'admin-katalog.html', content: html,
       after: function (root) {
         root.querySelector('[data-form="harga"]').onsubmit = function (ev) {
           ev.preventDefault();
@@ -484,7 +484,7 @@
           });
           S.save();
           U.flash('success', '"' + o.name + '" berhasil ditambahkan ke katalog dengan harga ' + S.rp(price) + '.');
-          location.hash = '#/admin/katalog';
+          location.href = 'admin-katalog.html';
         };
       }
     };
@@ -495,10 +495,10 @@
     var o = c ? S.orchidById(c.orchid_id) : null;
     if (!c || !o) {
       U.flash('warning', 'Data katalog tidak ditemukan.');
-      return { redirect: '#/admin/katalog' };
+      return { redirect: 'admin-katalog.html' };
     }
     var html = U.pageHead('Ubah Harga Katalog',
-      `<a class="link-plain" href="#/admin/katalog"><i class="bi bi-arrow-left"></i> Kembali ke katalog</a>`) + `
+      `<a class="link-plain" href="admin-katalog.html"><i class="bi bi-arrow-left"></i> Kembali ke katalog</a>`) + `
       <div class="panel panel-pad" style="max-width:640px">
         <div class="d-flex align-items-center gap-3 mb-4 pb-3" style="border-bottom:1px solid var(--line)">
           ${U.thumb(o.image, 'cell-thumb')}
@@ -517,12 +517,12 @@
             </select></div>
           <div class="d-flex gap-2">
             <button class="btn-accent" type="submit"><i class="bi bi-check2-circle me-1"></i> Simpan Perubahan</button>
-            <a href="#/admin/katalog" class="btn-soft">Batal</a>
+            <a href="admin-katalog.html" class="btn-soft">Batal</a>
           </div>
         </form>
       </div>`;
     return {
-      title: 'Ubah Harga Katalog', nav: 'admin', active: '#/admin/katalog', content: html,
+      title: 'Ubah Harga Katalog', nav: 'admin', active: 'admin-katalog.html', content: html,
       after: function (root) {
         root.querySelector('[data-form="ubah"]').onsubmit = function (ev) {
           ev.preventDefault();
@@ -533,7 +533,7 @@
           c.updated_at = S.now(0, 0);
           S.save();
           U.flash('success', 'Harga katalog berhasil diperbarui.');
-          location.hash = '#/admin/katalog';
+          location.href = 'admin-katalog.html';
         };
       }
     };
@@ -554,11 +554,11 @@
       <div class="panel" style="margin-bottom:18px">
         <div class="panel-pad d-flex flex-wrap gap-3 justify-content-between align-items-center">
           <div class="pill-tabs">
-            <a href="#/admin/pesanan" class="${status === '' ? 'active' : ''}">Semua <span class="qty-pill">${counts.all}</span></a>
-            <a href="#/admin/pesanan?status=pending" class="${status === 'pending' ? 'active' : ''}">Menunggu <span class="qty-pill">${counts.pending}</span></a>
-            <a href="#/admin/pesanan?status=diproses" class="${status === 'diproses' ? 'active' : ''}">Diproses <span class="qty-pill">${counts.diproses}</span></a>
-            <a href="#/admin/pesanan?status=selesai" class="${status === 'selesai' ? 'active' : ''}">Selesai <span class="qty-pill">${counts.selesai}</span></a>
-            <a href="#/admin/pesanan?status=dibatalkan" class="${status === 'dibatalkan' ? 'active' : ''}">Dibatalkan <span class="qty-pill">${counts.dibatalkan}</span></a>
+            <a href="admin-pesanan.html" class="${status === '' ? 'active' : ''}">Semua <span class="qty-pill">${counts.all}</span></a>
+            <a href="admin-pesanan.html?status=pending" class="${status === 'pending' ? 'active' : ''}">Menunggu <span class="qty-pill">${counts.pending}</span></a>
+            <a href="admin-pesanan.html?status=diproses" class="${status === 'diproses' ? 'active' : ''}">Diproses <span class="qty-pill">${counts.diproses}</span></a>
+            <a href="admin-pesanan.html?status=selesai" class="${status === 'selesai' ? 'active' : ''}">Selesai <span class="qty-pill">${counts.selesai}</span></a>
+            <a href="admin-pesanan.html?status=dibatalkan" class="${status === 'dibatalkan' ? 'active' : ''}">Dibatalkan <span class="qty-pill">${counts.dibatalkan}</span></a>
           </div>
         </div>
         <div class="table-responsive mt-3">
@@ -578,7 +578,7 @@
                 <td class="price-tag">${e(S.rp(o.total))}</td>
                 <td>${U.statusBadge(o.status)}</td>
                 <td class="text-end">
-                  <a class="btn-icon b-eye" href="#/admin/pesanan/${o.id}" title="Detail & ubah status"><i class="bi bi-eye"></i></a>
+                  <a class="btn-icon b-eye" href="admin-pesanan-detail.html?id=${o.id}" title="Detail & ubah status"><i class="bi bi-eye"></i></a>
                 </td>
               </tr>`;
             }).join('')
@@ -587,20 +587,20 @@
           </table>
         </div>
       </div>`;
-    return { title: 'Pesanan', nav: 'admin', active: '#/admin/pesanan', content: html };
+    return { title: 'Pesanan', nav: 'admin', active: 'admin-pesanan.html', content: html };
   };
 
   V.orderDetail = function (query, id) {
     var o = S.orderById(id);
     if (!o) {
       U.flash('warning', 'Pesanan tidak ditemukan.');
-      return { redirect: '#/admin/pesanan' };
+      return { redirect: 'admin-pesanan.html' };
     }
     var items = S.itemsOf(o.id);
     var customer = o.customer_id ? S.userById(o.customer_id) : null;
 
     var html = U.pageHead(`Detail Pesanan #${o.id}`,
-      `<a class="link-plain" href="#/admin/pesanan"><i class="bi bi-arrow-left"></i> Kembali ke daftar pesanan</a>`,
+      `<a class="link-plain" href="admin-pesanan.html"><i class="bi bi-arrow-left"></i> Kembali ke daftar pesanan</a>`,
       U.statusBadge(o.status)) + `
       <div class="grid-2-1">
         <div class="panel">
@@ -649,7 +649,7 @@
       </div>`;
 
     return {
-      title: `Pesanan #${o.id}`, nav: 'admin', active: '#/admin/pesanan', content: html,
+      title: `Pesanan #${o.id}`, nav: 'admin', active: 'admin-pesanan.html', content: html,
       after: function (root) {
         root.querySelector('[data-form="status"]').onsubmit = function (ev) {
           ev.preventDefault();
@@ -706,7 +706,7 @@
       </div>`).join('');
 
     return {
-      title: 'Ulasan', nav: 'admin', active: '#/admin/ulasan', content: html,
+      title: 'Ulasan', nav: 'admin', active: 'admin-ulasan.html', content: html,
       after: function (root) {
         root.querySelectorAll('[data-form^="balas:"]').forEach(function (f) {
           f.onsubmit = function (ev) {
@@ -740,7 +740,7 @@
   V.gallery = function () {
     var items = S.state.gallery.slice().sort(function (a, b) { return b.created_at.localeCompare(a.created_at); });
     var html = U.pageHead('Galeri', 'Foto-foto anggrek yang tampil untuk customer',
-      `<a href="#/admin/galeri/tambah" class="btn-accent"><i class="bi bi-plus-lg me-1"></i> Tambah Foto</a>`);
+      `<a href="admin-galeri-tambah.html" class="btn-accent"><i class="bi bi-plus-lg me-1"></i> Tambah Foto</a>`);
     if (!items.length) {
       html += `<div class="panel">${U.emptyState('bi-images', 'Galeri masih kosong', 'Tambahkan foto pertama lewat tombol <b>Tambah Foto</b>.')}</div>`;
     } else {
@@ -753,14 +753,14 @@
             <div class="gal-cap">${e(f.caption || 'Tanpa keterangan')}</div>
             <div class="gal-cap mt-1">${e(S.fmtDateOnly(f.created_at))}</div>
             <div class="d-flex gap-2 mt-3">
-              <a class="btn-icon b-edit" href="#/admin/galeri/${f.id}/ubah" title="Ubah"><i class="bi bi-pencil"></i></a>
+              <a class="btn-icon b-edit" href="admin-galeri-ubah.html?id=${f.id}" title="Ubah"><i class="bi bi-pencil"></i></a>
               <button class="btn-icon b-del" title="Hapus" data-del="${f.id}"><i class="bi bi-trash3"></i></button>
             </div>
           </div>
         </div>`).join('') + '</div>';
     }
     return {
-      title: 'Galeri', nav: 'admin', active: '#/admin/galeri', content: html,
+      title: 'Galeri', nav: 'admin', active: 'admin-galeri.html', content: html,
       after: function (root) {
         root.querySelectorAll('[data-del]').forEach(function (btn) {
           btn.onclick = function () {
@@ -780,10 +780,10 @@
     var foto = id ? S.state.gallery.find(function (f) { return f.id === id; }) : null;
     if (id && !foto) {
       U.flash('warning', 'Foto tidak ditemukan.');
-      return { redirect: '#/admin/galeri' };
+      return { redirect: 'admin-galeri.html' };
     }
     var html = U.pageHead(`${foto ? 'Ubah' : 'Tambah'} Foto Galeri`,
-      `<a class="link-plain" href="#/admin/galeri"><i class="bi bi-arrow-left"></i> Kembali ke galeri</a>`) + `
+      `<a class="link-plain" href="admin-galeri.html"><i class="bi bi-arrow-left"></i> Kembali ke galeri</a>`) + `
       <div class="panel panel-pad" style="max-width:720px">
         <form data-form="foto">
           <div class="mb-3"><label class="form-label">Judul Foto *</label>
@@ -797,12 +797,12 @@
           ${foto && foto.image ? `<div class="mb-3"><img src="${e(foto.image)}" alt="" style="max-height:220px;border-radius:14px;border:1px solid var(--line)" /></div>` : ''}
           <div class="d-flex gap-2">
             <button class="btn-accent" type="submit"><i class="bi bi-check2-circle me-1"></i> Simpan</button>
-            <a href="#/admin/galeri" class="btn-soft">Batal</a>
+            <a href="admin-galeri.html" class="btn-soft">Batal</a>
           </div>
         </form>
       </div>`;
     return {
-      title: foto ? 'Ubah Foto Galeri' : 'Tambah Foto Galeri', nav: 'admin', active: '#/admin/galeri', content: html,
+      title: foto ? 'Ubah Foto Galeri' : 'Tambah Foto Galeri', nav: 'admin', active: 'admin-galeri.html', content: html,
       after: function (root) {
         root.querySelector('[data-form="foto"]').onsubmit = function (ev) {
           ev.preventDefault();
@@ -822,7 +822,7 @@
             }
             S.save();
             U.flash('success', foto ? 'Foto galeri berhasil diperbarui.' : 'Foto berhasil ditambahkan ke galeri.');
-            location.hash = '#/admin/galeri';
+            location.href = 'admin-galeri.html';
           }
           if (file) {
             window.readFileData(file, function (dataUrl, err) {
@@ -866,7 +866,7 @@
             <input type="date" name="to" class="form-control" value="${e(to)}" /></div>
           <div class="col-md-4 d-flex gap-2">
             <button class="btn-accent" type="submit"><i class="bi bi-funnel me-1"></i> Terapkan Periode</button>
-            <a class="btn-soft" href="#/admin/laporan">Reset (bulan ini)</a>
+            <a class="btn-soft" href="admin-laporan.html">Reset (bulan ini)</a>
           </div>
           <div class="col-md-2"><div class="text-muted-2" style="text-align:right">
             <i class="bi bi-calendar3 me-1"></i> ${e(S.fmtDateOnly(from))}<br>s.d. ${e(S.fmtDateOnly(to))}</div></div>
@@ -905,7 +905,7 @@
               var items = S.itemsOf(o.id);
               return `
               <tr>
-                <td><a class="link-plain" href="#/admin/pesanan/${o.id}">#${o.id}</a></td>
+                <td><a class="link-plain" href="admin-pesanan-detail.html?id=${o.id}">#${o.id}</a></td>
                 <td class="cell-sub">${e(S.fmtDate(o.created_at))}</td>
                 <td>${e(o.customer_name)}</td>
                 <td style="max-width:300px">${items.map((i, idx) =>
@@ -927,12 +927,12 @@
       </div>`;
 
     return {
-      title: 'Laporan Penjualan', nav: 'admin', active: '#/admin/laporan', content: html,
+      title: 'Laporan Penjualan', nav: 'admin', active: 'admin-laporan.html', content: html,
       after: function (root) {
         root.querySelector('[data-form="periode"]').onsubmit = function (ev) {
           ev.preventDefault();
           var f = root.querySelector('[name=from]').value, t = root.querySelector('[name=to]').value;
-          location.hash = '#/admin/laporan?from=' + f + '&to=' + t;
+          location.href = 'admin-laporan.html?from=' + f + '&to=' + t;
         };
         root.querySelector('[data-action="unduh"]').onclick = function () {
           var rows = [['ID Pesanan', 'Tanggal', 'Customer', 'Item', 'Jumlah Item', 'Status', 'Total (Rp)']];

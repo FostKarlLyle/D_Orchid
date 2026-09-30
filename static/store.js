@@ -241,7 +241,8 @@
   function logout() { state.session = null; save(); }
 
   function roleHome(role) {
-    return role === 'admin' ? '#/admin' : role === 'karyawan' ? '#/karyawan' : '#/customer';
+    return role === 'admin' ? 'admin-dashboard.html'
+      : role === 'karyawan' ? 'karyawan-anggrek.html' : 'customer-katalog.html';
   }
 
   /* ---------- query helpers ---------- */

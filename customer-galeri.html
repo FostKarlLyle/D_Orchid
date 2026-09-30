@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Galeri Anggrek · D'Orchid</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>" />
+  <link rel="stylesheet" href="static/vendor/bootstrap.min.css" />
+  <link rel="stylesheet" href="static/vendor/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="public/css/style.css" />
+  <link rel="stylesheet" href="static/app.css" />
+</head>
+<body data-role="customer" data-view="customer.gallery">
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand"><div class="brand-badge">🌸</div><div>
+        <div class="brand-name">D'Orchid</div><div class="brand-sub">Orchid Shop</div>
+      </div></div>
+      <nav class="side-nav">
+        <a class="side-link" href="customer-katalog.html"><i class="bi bi-flower1"></i><span>Katalog Anggrek</span></a>
+        <a class="side-link" href="customer-keranjang.html"><i class="bi bi-cart3"></i><span>Keranjang</span><span class="side-count" data-badge="cart" style="display:none"></span></a>
+        <a class="side-link" href="customer-pesanan.html"><i class="bi bi-bag-check-fill"></i><span>Pesanan Saya</span></a>
+        <a class="side-link active" href="customer-galeri.html"><i class="bi bi-images"></i><span>Galeri</span></a>
+        <a class="side-link" href="customer-ulasan.html"><i class="bi bi-star-fill"></i><span>Ulasan</span></a>
+        <div class="side-label">Akun</div>
+        <a class="side-link" href="customer-akun.html"><i class="bi bi-person-circle"></i><span>Data Akun</span></a>
+      </nav>
+      <div class="sidebar-foot"><i class="bi bi-flower1"></i> © 2026 D'Orchid</div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="main">
+      <header class="topbar">
+        <button class="icon-btn" id="sidebarToggle" aria-label="Buka menu"><i class="bi bi-list"></i></button>
+        <div class="topbar-title">Galeri Anggrek</div>
+        <div class="topbar-user">
+          <div class="topbar-meta">
+            <div class="topbar-name" id="userName">–</div>
+            <div class="topbar-role" id="userRole">–</div>
+          </div>
+          <div class="avatar" id="userAvatar">?</div>
+          <button class="btn-logout" id="btnLogout" title="Log Out"><i class="bi bi-box-arrow-right"></i></button>
+        </div>
+      </header>
+      <main class="content">
+        <div id="flashSlot"></div>
+        <div id="view"></div>
+      </main>
+    </div>
+  </div>
+  <div class="toast-app" id="toastApp"></div>
+
+  <script src="static/store.js"></script>
+  <script src="static/ui.js"></script>
+  <script src="static/views-customer.js"></script>
+  <script src="static/page.js"></script>
+</body>
+</html>
