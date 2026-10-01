@@ -77,28 +77,28 @@
     var orchids = [
       O('Dendrobium Violet Queen', 'Dendrobium', 'Violet Queen', 'Berbunga', 12,
         'Anggrek Dendrobium ungu dengan bunga padat dan wangi lembut. Cocok untuk hadiah dan koleksi.',
-        'images/orchid-dendrobium.jpg', 45),
+        '../images/orchid-dendrobium.jpg', 45),
       O('Phalaenopsis Snow White', 'Phalaenopsis', 'Snow White', 'Berbunga', 8,
         'Phalaenopsis putih salju dengan sentuhan pink di pusat bunga. Tahan lama hingga 8 minggu.',
-        'images/orchid-phalaenopsis.jpg', 42),
+        '../images/orchid-phalaenopsis.jpg', 42),
       O('Cattleya Pink Splash', 'Cattleya', 'Pink Splash', 'Dewasa', 6,
         'Cattleya merah muda dengan bibir kuning keemasan, aromanya harum di pagi hari.',
-        'images/orchid-cattleya.jpg', 40),
+        '../images/orchid-cattleya.jpg', 40),
       O('Dendrobium Solar Flare', 'Dendrobium', 'Solar Flare', 'Remaja', 15,
         'Varietas baru dengan gradasi oranye-merah yang mencolok, cepat beranak.',
-        'images/orchid-dendrobium.jpg', 35),
+        '../images/orchid-dendrobium.jpg', 35),
       O('Phalaenopsis Golden Wave', 'Phalaenopsis', 'Golden Wave', 'Anakan', 20,
         'Anakan Phalaenopsis kuning keemasan, ideal untuk pemula karena mudah dirawat.',
-        'images/orchid-phalaenopsis.jpg', 30),
+        '../images/orchid-phalaenopsis.jpg', 30),
       O('Vanda Royal Blue', 'Vanda', 'Royal Blue', 'Dewasa', 5,
         'Vanda biru langka dengan pola jaring yang unik. Ditanam tanpa media (suspended).',
-        'images/hero-login.jpg', 25),
+        '../images/hero-login.jpg', 25),
       O('Anggrek Bulan Putih', 'Phalaenopsis', 'Anggrek Bulan', 'Bibit', 30,
         'Bibit anggrek bulan putih klasik, siap tanam dalam pot kecil.',
-        'images/orchid-phalaenopsis.jpg', 20),
+        '../images/orchid-phalaenopsis.jpg', 20),
       O('Cattleya Sunset', 'Cattleya', 'Sunset', 'Bibit', 25,
         'Bibit Cattleya warna jingga senja, langka dan banyak dicari kolektor.',
-        'images/orchid-cattleya.jpg', 15),
+        '../images/orchid-cattleya.jpg', 15),
       O('Dendrobium Moonlight', 'Dendrobium', 'Moonlight', 'Remaja', 10,
         'Dendrobium kuning pucat yang mekar di malam hari dengan aroma vanilla.', '', 10),
       O('Vanda Sunset Magic', 'Vanda', 'Sunset Magic', 'Anakan', 18,
@@ -168,11 +168,11 @@
     ];
 
     var gallery = [
-      { id: 1, title: "Kebun Anggrek D'Orchid", caption: 'Koleksi anggrek yang dirawat langsung oleh tenaga perawatan kami.', image: 'images/gallery-greenhouse.jpg', created_at: dt(50, 0) },
-      { id: 2, title: 'Koleksi Dendrobium', caption: 'Dendrobium ungu andalan toko, siap dikirim ke seluruh Indonesia.', image: 'images/orchid-dendrobium.jpg', created_at: dt(44, 0) },
-      { id: 3, title: 'Phalaenopsis Premium', caption: 'Phalaenopsis pilihan dengan bunga tahan lama hingga 8 minggu.', image: 'images/orchid-phalaenopsis.jpg', created_at: dt(37, 0) },
-      { id: 4, title: 'Cattleya Warna-Warni', caption: 'Cattleya harum yang selalu menjadi favorit kolektor.', image: 'images/orchid-cattleya.jpg', created_at: dt(30, 0) },
-      { id: 5, title: 'Sudut Favorit Kolektor', caption: 'Spot foto favorit pengunjung greenhouse kami.', image: 'images/hero-login.jpg', created_at: dt(12, 0) }
+      { id: 1, title: "Kebun Anggrek D'Orchid", caption: 'Koleksi anggrek yang dirawat langsung oleh tenaga perawatan kami.', image: '../images/gallery-greenhouse.jpg', created_at: dt(50, 0) },
+      { id: 2, title: 'Koleksi Dendrobium', caption: 'Dendrobium ungu andalan toko, siap dikirim ke seluruh Indonesia.', image: '../images/orchid-dendrobium.jpg', created_at: dt(44, 0) },
+      { id: 3, title: 'Phalaenopsis Premium', caption: 'Phalaenopsis pilihan dengan bunga tahan lama hingga 8 minggu.', image: '../images/orchid-phalaenopsis.jpg', created_at: dt(37, 0) },
+      { id: 4, title: 'Cattleya Warna-Warni', caption: 'Cattleya harum yang selalu menjadi favorit kolektor.', image: '../images/orchid-cattleya.jpg', created_at: dt(30, 0) },
+      { id: 5, title: 'Sudut Favorit Kolektor', caption: 'Spot foto favorit pengunjung greenhouse kami.', image: '../images/hero-login.jpg', created_at: dt(12, 0) }
     ];
 
     return {
@@ -204,6 +204,12 @@
       writeLS(state);
     }
     if (!state.cart) state.cart = [];
+    /* migrasi: path gambar seed lama ('images/…') → subfolder ('../images/…') */
+    var fix = function (v) {
+      return (typeof v === 'string' && v.indexOf('images/') === 0) ? '../' + v : v;
+    };
+    (state.orchids || []).forEach(function (o) { o.image = fix(o.image); });
+    (state.gallery || []).forEach(function (g) { g.image = fix(g.image); });
     return state;
   }
 
@@ -241,8 +247,8 @@
   function logout() { state.session = null; save(); }
 
   function roleHome(role) {
-    return role === 'admin' ? 'admin-dashboard.html'
-      : role === 'karyawan' ? 'karyawan-anggrek.html' : 'customer-katalog.html';
+    return role === 'admin' ? 'admin/admin-dashboard.html'
+      : role === 'karyawan' ? 'karyawan/karyawan-anggrek.html' : 'customer/customer-katalog.html';
   }
 
   /* ---------- query helpers ---------- */

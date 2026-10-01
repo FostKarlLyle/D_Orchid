@@ -27,10 +27,10 @@
   var role = body.getAttribute('data-role') || '';
   if (!user) {
     U.flash('warning', 'Silakan login terlebih dahulu.');
-    U.go('index.html');
+    U.go('../index.html');
   } else if (user.role !== role) {
     U.flash('warning', 'Anda tidak punya akses ke halaman ini.');
-    U.go(S.roleHome(user.role));
+    U.go('../' + S.roleHome(user.role));
   } else {
     boot();
   }

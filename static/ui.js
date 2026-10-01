@@ -165,7 +165,7 @@
         if (u && confirm('Keluar dari akun ' + u.name + '?')) {
           S.logout();
           flash('success', 'Berhasil logout. Sampai jumpa! 👋');
-          go('index.html');
+          go('../index.html');
         }
       };
     }

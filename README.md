@@ -37,14 +37,14 @@ Reset data demo: buka `index.html` lalu jalankan di DevTools Console:
 - **Customer** — Register, Katalog + **pencarian nama/jenis/varietas**, Keranjang (demo, tanpa checkout), Pesanan Saya, Galeri, Ulasan (beri/hapus), Data Akun
 - ❌ Dinonaktifkan: checkout customer & pembuatan pesanan admin (prototipe UI saja)
 
-### Struktur versi static (multi-halaman)
+### Struktur versi static (multi-halaman, folder per role)
 
 ```
 index.html            # halaman Login (entry — klik ganda untuk membuka)
 register.html         # registrasi customer
-admin-*.html          # 15 halaman admin (dashboard, akun, katalog, pesanan, ulasan, galeri, laporan + form)
-karyawan-*.html       # 4 halaman karyawan (data anggrek + form, data akun)
-customer-*.html       # 6 halaman customer (katalog, keranjang, pesanan, galeri, ulasan, akun)
+admin/                # 15 halaman admin (dashboard, akun, katalog, pesanan, ulasan, galeri, laporan + form)
+karyawan/             # 4 halaman karyawan (data anggrek + form, data akun)
+customer/             # 6 halaman customer (katalog, keranjang, pesanan, galeri, ulasan, akun)
 static/
   vendor/             # Bootstrap + Bootstrap Icons (lokal, jalan offline)
   store.js            # seed data demo + localStorage CRUD
@@ -57,7 +57,9 @@ public/css/style.css  # tema utama (dipakai kedua versi)
 images/               # foto seed
 ```
 
-Setiap halaman punya sidebar/topbar HTML statis (navigasi `<a href>` asli), lalu `page.js` menjaga sesi/role dan mengisi konten dinamis dari `views-*.js`. Query parameter memakai `?…` (contoh: `admin-pesanan-detail.html?id=8`).
+Setiap halaman punya sidebar/topbar HTML statis (navigasi `<a href>` asli), lalu `page.js` menjaga sesi/role dan mengisi konten dinamis dari `views-*.js`. Query parameter memakai `?…` (contoh: `admin/admin-pesanan-detail.html?id=8`).
+
+> ⚠️ Halaman di folder `admin/`, `karyawan/`, `customer/` memakai path aset berawalan `../` (mis. `../static/store.js`) dan gambar seed `../images/…` — **jangan dirapikan/dipindah tanpa menyesuaikan path-nya**. Guard logout/menuju login juga memakai `../index.html`.
 
 ---
 
