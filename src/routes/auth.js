@@ -46,22 +46,40 @@ router.post('/register', (req, res) => {
   const password = String(req.body.password || '');
   const confirm = String(req.body.confirm || '');
 
+  /* Aturan pendaftaran (sama dengan versi static) */
   if (!name || !email || !password) {
     flash(req, 'danger', 'Nama, email, dan password wajib diisi.');
     return res.redirect('/register');
   }
-  if (password.length < 6) {
-    flash(req, 'danger', 'Password minimal 6 karakter.');
+  if (name.length < 2) {
+    flash(req, 'danger', 'Nama lengkap minimal 2 karakter.');
+    return res.redirect('/register');
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    flash(req, 'danger', 'Format email tidak valid. Contoh: nama@email.com');
+    return res.redirect('/register');
+  }
+  if (password.length < 8) {
+    flash(req, 'danger', 'Password minimal 8 karakter.');
+    return res.redirect('/register');
+  }
+  if (!(/[A-Za-z]/.test(password) && /\d/.test(password))) {
+    flash(req, 'danger', 'Password harus mengandung huruf dan angka.');
     return res.redirect('/register');
   }
   if (password !== confirm) {
     flash(req, 'danger', 'Konfirmasi password tidak sama.');
     return res.redirect('/register');
   }
+  if (phone && phone.replace(/\D/g, '').length < 8) {
+    flash(req, 'danger', 'No. HP minimal 8 digit angka.');
+    return res.redirect('/register');
+  }
   const exists = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
   if (exists) {
-    flash(req, 'danger', 'Email sudah terdaftar. Silakan login.');
-    return res.redirect('/login');
+    /* perbaikan: kembali ke halaman register, bukan dilempar ke login */
+    flash(req, 'danger', 'Email sudah terdaftar. Gunakan email lain atau login.');
+    return res.redirect('/register');
   }
   const info = db
     .prepare(
@@ -70,7 +88,7 @@ router.post('/register', (req, res) => {
     .run(name, email, bcrypt.hashSync(password, 10), 'customer', phone, address);
   req.session.userId = info.lastInsertRowid;
   flash(req, 'success', 'Registrasi berhasil! Selamat berbelanja 🌸');
-  res.redirect('/customer');
+  res.redirect('/customer/katalog');
 });
 
 // ---- Logout ----

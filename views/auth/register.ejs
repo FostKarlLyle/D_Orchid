@@ -33,7 +33,38 @@
           </div>
         <% } %>
 
-        <form method="post" action="/register">
+        <style>
+          .rules-box { background: linear-gradient(135deg, #f8f5ff, #fdf7ff); border: 1px dashed #c4b5fd; border-radius: 14px; padding: 12px 16px; font-size: 13px; margin-bottom: 14px; color: #4c1d95; }
+          .rules-box b.title { display: block; font-size: 13.5px; margin-bottom: 4px; }
+          .rules-box ol { margin: 4px 0 10px; padding-left: 18px; }
+          .rules-box li { margin: 3px 0; }
+          .pw-rules { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12.5px; }
+          .pw-rules span { color: #9ca3af; transition: color .15s; }
+          .pw-rules span::before { content: "○ "; }
+          .pw-rules span.ok { color: #16a34a; font-weight: 600; }
+          .pw-rules span.ok::before { content: "✓ "; }
+          #formError:empty { display: none; }
+        </style>
+
+        <div class="rules-box">
+          <b class="title"><i class="bi bi-journal-check me-1"></i>Aturan Pendaftaran</b>
+          <ol>
+            <li>Nama lengkap minimal <b>2 karakter</b>.</li>
+            <li>Email harus <b>valid</b> (nama@domain.com) dan <b>belum terdaftar</b> — satu email untuk satu akun.</li>
+            <li>Password minimal <b>8 karakter</b>, mengandung <b>huruf &amp; angka</b>.</li>
+            <li>Konfirmasi password harus <b>sama</b> dengan password.</li>
+            <li>No. HP bersifat opsional; jika diisi, minimal <b>8 digit angka</b>.</li>
+          </ol>
+          <div class="pw-rules" aria-live="polite">
+            <span id="pwLen">min. 8 karakter</span>
+            <span id="pwLetter">ada huruf</span>
+            <span id="pwDigit">ada angka</span>
+          </div>
+        </div>
+
+        <div id="formError" role="alert"></div>
+
+        <form method="post" action="/register" data-form="register">
           <div class="mb-3">
             <label class="form-label">Nama Lengkap</label>
             <input type="text" name="name" class="form-control" placeholder="Nama kamu" required autofocus />
@@ -44,21 +75,21 @@
           </div>
           <div class="row g-2 mb-3">
             <div class="col-sm-6">
-              <label class="form-label">No. HP</label>
+              <label class="form-label">No. HP <span class="text-muted">(opsional)</span></label>
               <input type="text" name="phone" class="form-control" placeholder="08xx-xxxx-xxxx" />
             </div>
             <div class="col-sm-6">
               <label class="form-label">Password</label>
-              <input type="password" name="password" class="form-control" placeholder="min. 6 karakter" required />
+              <input type="password" name="password" class="form-control" placeholder="min. 8 + huruf &amp; angka" required minlength="8" />
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">Alamat</label>
+            <label class="form-label">Alamat <span class="text-muted">(opsional)</span></label>
             <input type="text" name="address" class="form-control" placeholder="Alamat pengiriman" />
           </div>
           <div class="mb-4">
             <label class="form-label">Konfirmasi Password</label>
-            <input type="password" name="confirm" class="form-control" placeholder="Ulangi password" required />
+            <input type="password" name="confirm" class="form-control" placeholder="Ulangi password" required minlength="8" />
           </div>
           <button class="btn-accent w-100" type="submit">
             <i class="bi bi-person-plus me-1"></i> Daftar Sekarang
@@ -75,5 +106,48 @@
   <div class="toast-app" id="toastApp"></div>
   <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="/public/js/app.js"></script>
+  <script>
+    /* Validasi aturan pendaftaran sebelum kirim (server memvalidasi ulang) */
+    (function () {
+      'use strict';
+      var form = document.querySelector('[data-form="register"]');
+      if (!form) return;
+      var errBox = document.getElementById('formError');
+
+      function showError(msg, field) {
+        errBox.innerHTML = '<div class="alert alert-danger alert-dismissible fade show app-alert" role="alert">' +
+          '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + msg +
+          '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button></div>';
+        if (field) field.focus();
+      }
+
+      form.elements['password'].addEventListener('input', function () {
+        var v = this.value;
+        document.getElementById('pwLen').classList.toggle('ok', v.length >= 8);
+        document.getElementById('pwLetter').classList.toggle('ok', /[A-Za-z]/.test(v));
+        document.getElementById('pwDigit').classList.toggle('ok', /\d/.test(v));
+      });
+
+      form.addEventListener('submit', function (ev) {
+        var val = function (n) { return form.elements[n].value.trim(); };
+        var name = val('name');
+        var email = val('email').toLowerCase();
+        var phone = val('phone');
+        var password = form.elements['password'].value;
+        var confirm = form.elements['confirm'].value;
+        var err = null;
+        if (name.length < 2) err = ['Nama lengkap minimal 2 karakter.', 'name'];
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) err = ['Format email tidak valid. Contoh: nama@email.com', 'email'];
+        else if (password.length < 8) err = ['Password minimal 8 karakter.', 'password'];
+        else if (!(/[A-Za-z]/.test(password) && /\d/.test(password))) err = ['Password harus mengandung huruf dan angka.', 'password'];
+        else if (password !== confirm) err = ['Konfirmasi password tidak sama.', 'confirm'];
+        else if (phone && phone.replace(/\D/g, '').length < 8) err = ['No. HP minimal 8 digit angka.', 'phone'];
+        if (err) {
+          ev.preventDefault();
+          showError(err[0], form.elements[err[1]]);
+        }
+      });
+    })();
+  </script>
 </body>
 </html>

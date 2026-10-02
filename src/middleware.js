@@ -22,9 +22,11 @@ function requireAuth(...roles) {
 }
 
 function roleHome(role) {
+  /* langsung ke halaman yang me-render (hindari rantai redirect
+     yang bisa menelan flash sebelum tampil) */
   if (role === 'admin') return '/admin';
-  if (role === 'karyawan') return '/karyawan';
-  return '/customer';
+  if (role === 'karyawan') return '/karyawan/anggrek';
+  return '/customer/katalog';
 }
 
 // Ambil barang keranjang/cart id customer (untuk kebutuhan tampilan)

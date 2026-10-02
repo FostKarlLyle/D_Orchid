@@ -9,6 +9,18 @@
   <link rel="stylesheet" href="static/vendor/bootstrap-icons.min.css" />
   <link rel="stylesheet" href="public/css/style.css" />
   <link rel="stylesheet" href="static/app.css" />
+  <style>
+    .rules-box { background: linear-gradient(135deg, #f8f5ff, #fdf7ff); border: 1px dashed #c4b5fd; border-radius: 14px; padding: 12px 16px; font-size: 13px; margin-bottom: 14px; color: #4c1d95; }
+    .rules-box b.title { display: block; font-size: 13.5px; margin-bottom: 4px; }
+    .rules-box ol { margin: 4px 0 10px; padding-left: 18px; }
+    .rules-box li { margin: 3px 0; }
+    .pw-rules { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12.5px; }
+    .pw-rules span { color: #9ca3af; transition: color .15s; }
+    .pw-rules span::before { content: "○ "; }
+    .pw-rules span.ok { color: #16a34a; font-weight: 600; }
+    .pw-rules span.ok::before { content: "✓ "; }
+    #formError:empty { display: none; }
+  </style>
 </head>
 <body>
   <div class="auth-wrap">
@@ -27,23 +39,43 @@
         <h2>Daftar Akun 🌱</h2>
         <div class="hint">Registrasi khusus customer.</div>
         <div id="flashSlot"></div>
+
+        <div class="rules-box">
+          <b class="title"><i class="bi bi-journal-check me-1"></i>Aturan Pendaftaran</b>
+          <ol>
+            <li>Nama lengkap minimal <b>2 karakter</b>.</li>
+            <li>Email harus <b>valid</b> (nama@domain.com) dan <b>belum terdaftar</b> — satu email untuk satu akun.</li>
+            <li>Password minimal <b>8 karakter</b>, mengandung <b>huruf &amp; angka</b>.</li>
+            <li>Konfirmasi password harus <b>sama</b> dengan password.</li>
+            <li>No. HP bersifat opsional; jika diisi, minimal <b>8 digit angka</b>.</li>
+          </ol>
+          <div class="pw-rules" aria-live="polite">
+            <span id="pwLen">min. 8 karakter</span>
+            <span id="pwLetter">ada huruf</span>
+            <span id="pwDigit">ada angka</span>
+          </div>
+        </div>
+
+        <div id="formError" role="alert"></div>
+
         <form data-form="register">
           <div class="mb-3"><label class="form-label">Nama Lengkap</label>
             <input type="text" name="name" class="form-control" required autofocus placeholder="Nama kamu" /></div>
           <div class="mb-3"><label class="form-label">Email</label>
             <input type="email" name="email" class="form-control" required placeholder="nama@email.com" /></div>
           <div class="row g-2 mb-3">
-            <div class="col-sm-6"><label class="form-label">No. HP</label>
+            <div class="col-sm-6"><label class="form-label">No. HP <span class="text-muted">(opsional)</span></label>
               <input type="text" name="phone" class="form-control" placeholder="08xx-xxxx-xxxx" /></div>
             <div class="col-sm-6"><label class="form-label">Password</label>
-              <input type="password" name="password" class="form-control" required minlength="6" placeholder="min. 6 karakter" /></div>
+              <input type="password" name="password" class="form-control" required minlength="8" placeholder="min. 8 + huruf &amp; angka" /></div>
           </div>
-          <div class="mb-3"><label class="form-label">Alamat</label>
+          <div class="mb-3"><label class="form-label">Alamat <span class="text-muted">(opsional)</span></label>
             <input type="text" name="address" class="form-control" placeholder="Alamat pengiriman" /></div>
           <div class="mb-4"><label class="form-label">Konfirmasi Password</label>
-            <input type="password" name="confirm" class="form-control" required placeholder="Ulangi password" /></div>
+            <input type="password" name="confirm" class="form-control" required minlength="8" placeholder="Ulangi password" /></div>
           <button class="btn-accent w-100" type="submit"><i class="bi bi-person-plus me-1"></i> Daftar Sekarang</button>
         </form>
+
         <div class="auth-switch">Sudah punya akun? <a href="index.html" class="link-plain">Login di sini</a></div>
       </div>
     </div>
@@ -58,20 +90,60 @@
       var S = window.Store, U = window.UI;
       if (S.currentUser()) { U.go(S.roleHome(S.currentUser().role)); return; }
       document.getElementById('flashSlot').innerHTML = U.flashHTML();
-      document.querySelector('[data-form="register"]').addEventListener('submit', function (ev) {
+
+      var errBox = document.getElementById('formError');
+      var form = document.querySelector('[data-form="register"]');
+
+      function showError(msg, field) {
+        errBox.innerHTML = '<div class="alert alert-danger alert-dismissible fade show app-alert" role="alert">' +
+          '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + UI.e(msg) +
+          '<button type="button" class="btn-close" data-dismiss="1" aria-label="Tutup"></button></div>';
+        var close = errBox.querySelector('[data-dismiss]');
+        if (close) close.onclick = function () { errBox.innerHTML = ''; };
+        if (field) field.focus();
+      }
+      function clearError() { errBox.innerHTML = ''; }
+
+      /* checklist live password */
+      function updatePwRules() {
+        var v = form.elements['password'].value;
+        document.getElementById('pwLen').classList.toggle('ok', v.length >= 8);
+        document.getElementById('pwLetter').classList.toggle('ok', /[A-Za-z]/.test(v));
+        document.getElementById('pwDigit').classList.toggle('ok', /\d/.test(v));
+      }
+      form.elements['password'].addEventListener('input', updatePwRules);
+
+      /* validasi lengkap — urut dari field pertama */
+      function validate(data) {
+        if (data.name.length < 2) return ['Nama lengkap minimal 2 karakter.', 'name'];
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email)) return ['Format email tidak valid. Contoh: nama@email.com', 'email'];
+        if (data.password.length < 8) return ['Password minimal 8 karakter.', 'password'];
+        if (!(/[A-Za-z]/.test(data.password) && /\d/.test(data.password)))
+          return ['Password harus mengandung huruf dan angka.', 'password'];
+        if (data.password !== data.confirm) return ['Konfirmasi password tidak sama.', 'confirm'];
+        if (data.phone && data.phone.replace(/\D/g, '').length < 8)
+          return ['No. HP minimal 8 digit angka.', 'phone'];
+        if (S.state.users.some(function (u) { return u.email.toLowerCase() === data.email; }))
+          return ['Email sudah terdaftar. Gunakan email lain atau login.', 'email'];
+        return null;
+      }
+
+      form.addEventListener('submit', function (ev) {
         ev.preventDefault();
-        var form = this;
         var val = function (n) { return form.elements[n].value.trim(); };
         var data = {
-          name: val('name'), email: val('email').toLowerCase(), phone: val('phone'),
-          address: val('address'), password: form.elements['password'].value
+          name: val('name'),
+          email: val('email').toLowerCase(),
+          phone: val('phone'),
+          address: val('address'),
+          password: form.elements['password'].value,
+          confirm: form.elements['confirm'].value
         };
-        var confirm2 = form.elements['confirm'].value;
-        if (!data.name || !data.email || !data.password) { U.toast('Nama, email, dan password wajib diisi.', 'err'); return; }
-        if (data.password.length < 6) { U.toast('Password minimal 6 karakter.', 'err'); return; }
-        if (data.password !== confirm2) { U.toast('Konfirmasi password tidak sama.', 'err'); return; }
+        var err = validate(data);
+        if (err) { showError(err[0], form.elements[err[1]]); return; }
+        clearError();
         var res = S.register(data);
-        if (res.error) { U.toast(res.error, 'err'); return; }
+        if (res.error) { showError(res.error, form.elements['email']); return; }
         U.flash('success', 'Registrasi berhasil! Selamat berbelanja 🌸');
         U.go(S.roleHome(res.user.role));
       });

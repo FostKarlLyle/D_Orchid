@@ -31,7 +31,7 @@ Reset data demo: buka `index.html` lalu jalankan di DevTools Console:
 
 ### Fitur versi static
 
-- **Auth** — login 3 role, register customer, logout (session di localStorage)
+- **Auth** — login 3 role, register customer (**aturan: nama min. 2 karakter · email valid & belum terdaftar · password min. 8 karakter + huruf & angka · konfirmasi sama · no. HP opsional min. 8 digit** — dengan checklist live & pesan error inline), logout (session di localStorage)
 - **Admin** — Dashboard (ringkasan penjualan, jumlah anggrek per jenis/fase, stok terjual), Data Akun (CRUD admin & karyawan; **akun customer hanya bisa dilihat**, tidak bisa ditambah/diubah), **Katalog tombol `+`** (pilih data anggrek karyawan → tentukan harga), Pesanan (lihat + update status), Ulasan (balas/hapus), Galeri (CRUD foto), Laporan periode + **unduh CSV**
 - **Karyawan** — Data Akun, Manajemen Data Anggrek (CRUD + foto). *Fitur katalog dihapus*; saat karyawan memperbarui stok anggrek, **stok di katalog otomatis ikut ter-update** (satu sumber data).
 - **Customer** — Register, Katalog + **pencarian nama/jenis/varietas**, Keranjang (demo, tanpa checkout), Pesanan Saya, Galeri, Ulasan (beri/hapus), Data Akun
