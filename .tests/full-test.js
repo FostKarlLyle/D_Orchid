@@ -381,8 +381,20 @@ section('customer: katalog/keranjang/ulasan');
 section('customer: detail katalog + isi ulasan produk');
 {
   const t = openPage('customer/customer-katalog.html', { user: EMAILS.customer });
-  ok(!!t.q('a[href="customer-katalog-detail.html?id=1"]'), 'kartu katalog punya tombol Detail');
-  ok(!!t.q('a[href="customer-katalog-detail.html?id=6"]'), 'Detail ada di semua kartu (sampai id terakhir)');
+  ok(t.qa('.prod-card[data-detail]').length >= 6, 'semua kartu produk punya data-detail (klik = buka detail)');
+  ok(!t.q('a[href^="customer-katalog-detail"]'), 'tombol Detail terpisah sudah dihapus dari kartu');
+  /* klik kartu (bukan tombol) → langsung buka detail */
+  const first = t.q('.prod-card[data-detail]');
+  t.click(first);
+  ok(t.events[0] === 'customer-katalog-detail.html?id=' + first.getAttribute('data-detail'), 'klik kartu → langsung ke detail');
+}
+{
+  /* klik tombol Keranjang di dalam kartu TIDAK ikut navigasi */
+  const t = openPage('customer/customer-katalog.html', { user: EMAILS.sari });
+  const cart0 = t.S.state.cart.length;
+  t.click(t.q('[data-cart]'));
+  ok(t.S.state.cart.length === cart0 + 1, 'klik Keranjang di kartu → tetap tambah keranjang');
+  ok(t.events.length === 0, 'klik Keranjang TIDAK memicu navigasi detail');
 }
 {
   const t = openPage('customer/customer-katalog-detail.html', { user: EMAILS.sari, query: 'id=1' });
@@ -392,7 +404,8 @@ section('customer: detail katalog + isi ulasan produk');
   ok(has(t.view(), t.S.rp(c.price)), 'detail: harga katalog tampil');
   ok(has(t.view(), o.description), 'detail: deskripsi tampil');
   ok(has(t.view(), 'Stok: ' + o.stock), 'detail: stok tampil');
-  ok(!!t.q('a[href="customer-katalog.html"]'), 'tombol Kembali ke Katalog');
+  ok(!!t.q('a[href="customer-katalog.html"]'), 'link Kembali di atas ada');
+  ok(!!t.q('a.fab-back[href="customer-katalog.html"]'), 'tombol Kembali MELAYANG (fab-back) — tidak perlu scroll ke atas');
   /* ulasan produk — customer lain bisa baca isi ulasan */
   ok(has(t.view(), 'Ulasan Produk'), 'panel ulasan ada');
   ok(has(t.view(), 'Bunganya lebat sekali'), 'isi ulasan terbaca di detail');

@@ -35,7 +35,7 @@
         'Coba kata kunci lain, misalnya <i>Dendrobium</i>, <i>Phalaenopsis</i>, atau nama varietasnya.')}</div>`;
     } else {
       html += '<div class="prod-grid">' + items.map(it => `
-        <div class="panel prod-card">
+        <div class="panel prod-card" data-detail="${it.catalog_id}">
           ${it.image ? `<img class="prod-img" src="${e(it.image)}" alt="${e(it.name)}" loading="lazy" />`
             : '<div class="prod-img empty">🌱</div>'}
           <div class="prod-body">
@@ -48,12 +48,9 @@
             <div class="prod-foot">
               <div><div class="price-tag" style="font-size:17px">${e(S.rp(it.price))}</div>
               <div class="cell-sub">Stok: ${it.stock} pot</div></div>
-              <div class="d-flex gap-2 align-items-center flex-wrap justify-content-end">
-                <a class="btn-soft d-inline-block text-decoration-none" href="customer-katalog-detail.html?id=${it.catalog_id}"><i class="bi bi-eye me-1"></i> Detail</a>
-                ${it.stock > 0
-                  ? `<button class="btn-accent" data-cart="${it.catalog_id}"><i class="bi bi-cart-plus"></i> Keranjang</button>`
-                  : '<span class="badge bg-danger">Habis</span>'}
-              </div>
+              ${it.stock > 0
+                ? `<button class="btn-accent" data-cart="${it.catalog_id}"><i class="bi bi-cart-plus"></i> Keranjang</button>`
+                : '<span class="badge bg-danger">Habis</span>'}
             </div>
           </div>
         </div>`).join('') + '</div>';
@@ -77,6 +74,12 @@
             S.save();
             U.toast('Ditambahkan ke keranjang 🛒');
             App.render();
+          };
+        });
+        root.querySelectorAll('[data-detail]').forEach(function (card) {
+          card.onclick = function (ev) {
+            if (ev.target && ev.target.closest && ev.target.closest('button, a')) return;
+            U.go('customer-katalog-detail.html?id=' + card.getAttribute('data-detail'));
           };
         });
       }
@@ -114,6 +117,7 @@
 
     var html = `
       <a class="btn-soft d-inline-block text-decoration-none mb-3" href="customer-katalog.html"><i class="bi bi-arrow-left me-1"></i> Kembali ke Katalog</a>
+      <a class="btn-accent fab-back" href="customer-katalog.html" title="Kembali ke Katalog"><i class="bi bi-arrow-left"></i> Kembali</a>
       <div class="panel panel-pad mb-3">
         <div class="row g-4 align-items-center">
           <div class="col-md-5">
