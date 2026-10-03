@@ -21,5 +21,8 @@
     "express": "^5.1.0",
     "express-session": "^1.18.1",
     "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "jsdom": "^30.1.1"
   }
 }

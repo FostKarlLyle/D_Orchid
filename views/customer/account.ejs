@@ -86,6 +86,12 @@
       <a class="btn-accent" href="/customer/akun?mode=edit"><i class="bi bi-pencil-square me-1"></i> Edit Profil</a>
       <a class="btn-soft text-decoration-none" href="/customer/akun?mode=password"><i class="bi bi-key me-1"></i> Ganti Password</a>
     </div>
+    <form method="post" action="/customer/akun/hapus" class="mt-4 pt-3" style="border-top:1px dashed rgba(239,68,68,.4)"
+      onsubmit="return confirm(&quot;Hapus akun ini? Ulasanmu ikut terhapus dan nama akun tidak bisa dikembalikan. Lanjutkan?&quot;)">
+      <div class="cell-sub mb-2"><i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>
+        <b>Zona berbahaya</b> — hapus akun permanen. Ulasanmu ikut terhapus, pesanan tetap tersimpan (tanpa nama akun).</div>
+      <button class="btn btn-outline-danger" type="submit"><i class="bi bi-trash3 me-1"></i> Hapus Akun</button>
+    </form>
     <% } %>
   </div>
 

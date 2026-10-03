@@ -445,6 +445,29 @@ section('customer: Data Akun (tampil → tombol edit, password terpisah)');
   ok(!t.q('input[name="name"]'), 'mode lihat TIDAK ada input');
   ok(has(t.view(), t.S.currentUser().name), 'nama user tampil sebagai teks');
   ok(!has(t.view(), 'Kosongkan jika tidak diganti'), 'field password lama di form profil sudah tidak ada');
+  ok(!!t.q('[data-action="hapus-akun"]'), 'tombol Hapus Akun ada (mode lihat)');
+}
+{
+  /* hapus akun customer sendiri */
+  const t = openPage('customer/customer-akun.html', { user: EMAILS.sari });
+  const sid = t.S.currentUser().id;
+  const revBefore = t.S.state.reviews.filter(r => r.customer_id === sid).length;
+  const ordBefore = t.S.state.orders.filter(o => o.customer_id === sid).length;
+  ok(revBefore > 0, 'premis: sari punya ulasan (' + revBefore + ')');
+  ok(ordBefore > 0, 'premis: sari punya pesanan (' + ordBefore + ')');
+  t.w.confirm = () => false;
+  t.click(t.q('[data-action="hapus-akun"]'));
+  ok(!!t.S.currentUser(), 'confirm=false (batal) → akun tetap ada');
+  ok(t.S.state.reviews.filter(r => r.customer_id === sid).length === revBefore, 'ulasan tetap saat batal');
+  t.w.confirm = () => true;
+  t.click(t.q('[data-action="hapus-akun"]'));
+  ok(!t.S.currentUser(), 'confirm=true → sesi berakhir (logout)');
+  ok(!t.S.state.users.find(u => u.email === 'sari@mail.com'), 'user terhapus dari state');
+  ok(t.S.state.reviews.filter(r => r.customer_id === sid).length === 0, 'ulasan milik ikut terhapus (mirror CASCADE)');
+  ok(t.S.state.orders.filter(o => o.customer_id === sid).length === 0, 'pesanan dilepas dari akun (mirror SET NULL)');
+  ok(t.S.state.orders.filter(o => o.customer_id === null).length >= ordBefore, 'pesanan tetap tersimpan (customer_id=null)');
+  ok(t.S.state.cart.length === 0, 'keranjang dikosongkan');
+  ok(has(t.flashText(), 'berhasil dihapus'), 'flash perpisahan tersimpan untuk halaman login');
 }
 {
   const t = openPage('customer/customer-akun.html', { user: EMAILS.sari, query: 'mode=edit' });
@@ -528,6 +551,7 @@ section('karyawan: Data Akun (tampil → tombol edit, password terpisah)');
   ok(!!t.q('a[href="karyawan-akun.html?mode=edit"]'), 'tombol Edit Profil ada');
   ok(!!t.q('a[href="karyawan-akun.html?mode=password"]'), 'tombol Ganti Password ada');
   ok(!t.q('input[name="name"]'), 'tidak langsung mode edit');
+  ok(!t.q('[data-action="hapus-akun"]'), 'hapus akun KHUSUS customer — tidak ada di karyawan');
 }
 {
   const t = openPage('karyawan/karyawan-akun.html', { user: EMAILS.karyawan, query: 'mode=edit' });

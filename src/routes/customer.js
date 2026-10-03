@@ -101,6 +101,16 @@ router.post('/akun/password', (req, res) => {
   res.redirect('/customer/akun');
 });
 
+/* Hapus akun sendiri — ulasan ikut terhapus (FK CASCADE),
+   pesanan tetap tersimpan dengan nama snapshot (FK SET NULL) */
+router.post('/akun/hapus', (req, res) => {
+  const akun = db.prepare('SELECT * FROM users WHERE id = ?').get(res.locals.user.id);
+  db.prepare('DELETE FROM users WHERE id = ?').run(akun.id);
+  req.session.userId = null; // keluar — flash tetap hidup di sesi yang sama
+  flash(req, 'success', 'Akun kamu berhasil dihapus. Sampai jumpa! 👋');
+  res.redirect('/login');
+});
+
 /* ============================================================
    2. KATALOG — lihat & cari (nama / jenis / varietas)
    ============================================================ */

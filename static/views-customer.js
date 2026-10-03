@@ -502,6 +502,11 @@
         <div class="d-flex gap-2 flex-wrap mt-3">
           <a class="btn-accent" href="${HERE}?mode=edit"><i class="bi bi-pencil-square me-1"></i> Edit Profil</a>
           <a class="btn-soft text-decoration-none" href="${HERE}?mode=password"><i class="bi bi-key me-1"></i> Ganti Password</a>
+        </div>
+        <div class="mt-4 pt-3" style="border-top:1px dashed rgba(239,68,68,.4)">
+          <div class="cell-sub mb-2"><i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>
+            <b>Zona berbahaya</b> — hapus akun permanen. Ulasanmu ikut terhapus, pesanan tetap tersimpan (tanpa nama akun).</div>
+          <button type="button" class="btn btn-outline-danger" data-action="hapus-akun"><i class="bi bi-trash3 me-1"></i> Hapus Akun</button>
         </div>`;
     }
 
@@ -544,6 +549,19 @@
           if (close) close.onclick = function () { box.innerHTML = ''; };
           if (field) field.focus();
         }
+
+        var delBtn = root.querySelector('[data-action="hapus-akun"]');
+        if (delBtn) delBtn.onclick = function () {
+          if (!confirm('Hapus akun "' + akun.name + '"? Ulasanmu ikut terhapus dan nama akun tidak bisa dikembalikan. Lanjutkan?')) return;
+          S.state.reviews = S.state.reviews.filter(function (r) { return r.customer_id !== akun.id; });
+          S.state.orders.forEach(function (o) { if (o.customer_id === akun.id) o.customer_id = null; });
+          S.state.users = S.state.users.filter(function (u) { return u.id !== akun.id; });
+          S.state.cart = [];
+          S.state.session = null;
+          S.save();
+          U.flash('success', 'Akun kamu berhasil dihapus. Sampai jumpa! 👋');
+          location.href = '../index.html';
+        };
 
         var profil = root.querySelector('[data-form="profil"]');
         if (profil) {
