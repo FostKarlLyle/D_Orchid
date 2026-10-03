@@ -34,7 +34,7 @@ Reset data demo: buka `index.html` lalu jalankan di DevTools Console:
 - **Auth** — login 3 role, register customer (**aturan: nama min. 2 karakter · email valid & belum terdaftar · password min. 8 karakter + huruf & angka · konfirmasi sama · no. HP opsional min. 8 digit** — dengan checklist live & pesan error inline), logout (session di localStorage)
 - **Admin** — Dashboard (ringkasan penjualan, jumlah anggrek per jenis/fase, stok terjual), Data Akun (CRUD admin & karyawan; **akun customer hanya bisa dilihat**, tidak bisa ditambah/diubah), **Katalog tombol `+`** (pilih data anggrek karyawan → tentukan harga), Pesanan (lihat + update status), Ulasan (balas/hapus), Galeri (CRUD foto), Laporan periode + **unduh CSV**
 - **Karyawan** — Data Akun (**mode lihat dulu — tombol ✏️ Edit Profil & 🔑 Ganti Password**; ganti password terpisah: wajib password saat ini + aturan min. 8, huruf & angka), Manajemen Data Anggrek (CRUD + foto). *Fitur katalog dihapus*; saat karyawan memperbarui stok anggrek, **stok di katalog otomatis ikut ter-update** (satu sumber data).
-- **Customer** — Register, Katalog + **pencarian nama/jenis/varietas**, Keranjang (demo, tanpa checkout), Pesanan Saya, Galeri, Ulasan (beri/hapus), Data Akun (**mode lihat dulu — tombol ✏️ Edit Profil & 🔑 Ganti Password terpisah**)
+- **Customer** — Register, Katalog + **pencarian nama/jenis/varietas**, **Detail produk per anggrek** (foto, harga, stok, deskripsi + **semua ulasan pembeli & balasan penjual**), Keranjang (demo, tanpa checkout), Pesanan Saya, Galeri, Ulasan (beri/hapus), Data Akun (**mode lihat dulu — tombol ✏️ Edit Profil & 🔑 Ganti Password terpisah**)
 - ❌ Dinonaktifkan: checkout customer & pembuatan pesanan admin (prototipe UI saja)
 
 ### Struktur versi static (multi-halaman, folder per role)
@@ -44,7 +44,7 @@ index.html            # halaman Login (entry — klik ganda untuk membuka)
 register.html         # registrasi customer
 admin/                # 15 halaman admin (dashboard, akun, katalog, pesanan, ulasan, galeri, laporan + form)
 karyawan/             # 4 halaman karyawan (data anggrek + form, data akun)
-customer/             # 6 halaman customer (katalog, keranjang, pesanan, galeri, ulasan, akun)
+customer/             # 7 halaman customer (katalog, detail katalog+ulasan, keranjang, pesanan, galeri, ulasan, akun)
 static/
   vendor/             # Bootstrap + Bootstrap Icons (lokal, jalan offline)
   store.js            # seed data demo + localStorage CRUD

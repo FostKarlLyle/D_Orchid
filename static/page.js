@@ -64,6 +64,7 @@
     }
     if (window.VCustomer) {
       REG['customer.catalog'] = VCustomer.catalog;
+      REG['customer.katalogDetail'] = VCustomer.katalogDetail;
       REG['customer.cart'] = VCustomer.cart;
       REG['customer.orders'] = VCustomer.orders;
       REG['customer.gallery'] = VCustomer.gallery;

@@ -1,0 +1,75 @@
+<%- include('../partials/head', { title: title, nav: 'customer-nav', active: 'katalog' }) %>
+
+<a class="btn-soft d-inline-block text-decoration-none mb-3" href="/customer/katalog"><i class="bi bi-arrow-left me-1"></i> Kembali ke Katalog</a>
+
+<div class="panel panel-pad mb-3">
+  <div class="row g-4 align-items-center">
+    <div class="col-md-5">
+      <% if (orchid.image) { %>
+        <img src="<%= orchid.image %>" alt="<%= orchid.name %>" style="width:100%;height:260px;object-fit:cover;border-radius:12px" />
+      <% } else { %>
+        <div style="width:100%;height:260px;border-radius:12px;background:#efe9fb;display:grid;place-items:center;font-size:56px">🌱</div>
+      <% } %>
+    </div>
+    <div class="col-md-7">
+      <div class="prod-name" style="font-size:23px"><%= orchid.name %></div>
+      <div class="prod-meta mt-2">
+        <span class="badge badge-fase <%= FASE_BADGE[orchid.fase] %>"><%= orchid.fase %></span>
+        <span class="badge bg-light text-dark border"><%= orchid.jenis %></span>
+        <% if (orchid.varietas) { %><span class="badge bg-light text-dark border"><%= orchid.varietas %></span><% } %>
+      </div>
+      <div class="mt-2">
+        <% if (count) { %>
+          <span class="stars" style="font-size:17px">★ <%= avg %></span>
+          <span class="cell-sub">(<%= count %> ulasan)</span>
+          <a href="#ulasan" class="link-plain">lihat isi ulasan ↓</a>
+        <% } else { %>
+          <span class="cell-sub">Belum ada ulasan</span>
+        <% } %>
+      </div>
+      <div class="prod-desc mt-2" style="font-size:14.5px"><%= orchid.description || 'Belum ada deskripsi.' %></div>
+      <div class="price-tag mt-2" style="font-size:24px"><%= formatRp(price) %></div>
+      <div class="cell-sub mb-3">
+        Stok: <%= orchid.stock %> pot
+        <% if (orchid.stock <= 0) { %> · <span class="badge bg-danger">Habis</span><% } %>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <% if (orchid.stock > 0) { %>
+          <button class="btn-accent" type="button" onclick="DOrchid.addToCart(<%= catalog_id %>, 1)">
+            <i class="bi bi-cart-plus"></i> Masukkan Keranjang
+          </button>
+        <% } %>
+        <a class="btn-soft d-inline-block text-decoration-none" href="/customer/ulasan">
+          <i class="bi bi-pencil-square me-1"></i> <%= myReview ? 'Kelola Ulasan Saya' : 'Beri Ulasan' %>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="panel panel-pad" id="ulasan">
+  <div class="panel-title"><i class="bi bi-chat-square-text"></i> Ulasan Produk <span class="cell-sub">(<%= count %>)</span></div>
+  <div class="panel-sub">Ditulis oleh customer yang sudah membeli</div>
+  <% if (!reviews.length) { %>
+    <div class="empty-state">
+      <i class="bi bi-star"></i>
+      <div class="title">Belum ada ulasan</div>
+      Jadilah yang pertama mengulas produk ini — klik tombol <b>Beri Ulasan</b> di atas.
+    </div>
+  <% } else { %>
+    <% reviews.forEach(function (r) { %>
+      <div class="panel panel-pad" style="margin-bottom:12px">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div class="fw-bold"><%= r.customer_name || 'Pembeli' %> <span class="cell-sub fw-normal">· <%= formatDate(r.created_at) %></span></div>
+          <div><span class="stars"><% for (let i = 1; i <= 5; i++) { %><span class="<%= i <= r.rating ? '' : 'dim' %>">★</span><% } %></span></div>
+        </div>
+        <div class="mt-2"><%= r.comment %></div>
+        <% if (r.reply) { %>
+          <div class="demo-box mt-2 mb-0"><i class="bi bi-shop me-1"></i><b>Balasan penjual:</b> <%= r.reply %></div>
+        <% } %>
+      </div>
+    <% }) %>
+  <% } %>
+</div>
+
+<%- include('../partials/foot') %>

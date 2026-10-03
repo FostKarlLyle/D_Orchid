@@ -48,9 +48,12 @@
             <div class="prod-foot">
               <div><div class="price-tag" style="font-size:17px">${e(S.rp(it.price))}</div>
               <div class="cell-sub">Stok: ${it.stock} pot</div></div>
-              ${it.stock > 0
-                ? `<button class="btn-accent" data-cart="${it.catalog_id}"><i class="bi bi-cart-plus"></i> Keranjang</button>`
-                : '<span class="badge bg-danger">Habis</span>'}
+              <div class="d-flex gap-2 align-items-center flex-wrap justify-content-end">
+                <a class="btn-soft d-inline-block text-decoration-none" href="customer-katalog-detail.html?id=${it.catalog_id}"><i class="bi bi-eye me-1"></i> Detail</a>
+                ${it.stock > 0
+                  ? `<button class="btn-accent" data-cart="${it.catalog_id}"><i class="bi bi-cart-plus"></i> Keranjang</button>`
+                  : '<span class="badge bg-danger">Habis</span>'}
+              </div>
             </div>
           </div>
         </div>`).join('') + '</div>';
@@ -71,6 +74,91 @@
             var ex = cart.find(function (i) { return i.id === id; });
             if (ex) ex.qty += 1;
             else cart.push({ id: id, qty: 1 });
+            S.save();
+            U.toast('Ditambahkan ke keranjang 🛒');
+            App.render();
+          };
+        });
+      }
+    };
+  };
+
+  /* ============ DETAIL KATALOG + ULASAN PRODUK ============ */
+  V.katalogDetail = function (query, id) {
+    var c = id ? S.catalogById(id) : null;
+    var o = c ? S.orchidById(c.orchid_id) : null;
+    if (!c || !c.is_active || !o) {
+      U.flash('warning', 'Produk katalog tidak ditemukan.');
+      return { redirect: 'customer-katalog.html' };
+    }
+    var me = S.currentUser();
+    var revs = S.state.reviews.filter(function (r) { return r.catalog_id === c.id; })
+      .sort(function (a, b) { return b.created_at.localeCompare(a.created_at); });
+    var avg = revs.length
+      ? Math.round((revs.reduce(function (s, r) { return s + r.rating; }, 0) / revs.length) * 10) / 10 : 0;
+    var myRev = revs.find(function (r) { return r.customer_id === me.id; });
+
+    var reviewList = revs.length ? revs.map(function (r) {
+      var who = S.userById(r.customer_id);
+      return `
+        <div class="panel panel-pad" style="margin-bottom:12px">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="fw-bold">${e(who ? who.name : 'Pembeli')} <span class="cell-sub fw-normal">· ${e(S.fmtDate(r.created_at))}</span></div>
+            <div>${U.stars(r.rating)}</div>
+          </div>
+          <div class="mt-2">${e(r.comment)}</div>
+          ${r.reply ? `<div class="demo-box mt-2 mb-0"><i class="bi bi-shop me-1"></i><b>Balasan penjual:</b> ${e(r.reply)}</div>` : ''}
+        </div>`;
+    }).join('') : `<div class="panel">${U.emptyState('bi-star', 'Belum ada ulasan',
+        'Jadilah yang pertama mengulas produk ini — klik tombol <b>Beri Ulasan</b> di atas.')}</div>`;
+
+    var html = `
+      <a class="btn-soft d-inline-block text-decoration-none mb-3" href="customer-katalog.html"><i class="bi bi-arrow-left me-1"></i> Kembali ke Katalog</a>
+      <div class="panel panel-pad mb-3">
+        <div class="row g-4 align-items-center">
+          <div class="col-md-5">
+            ${o.image ? `<img src="${e(o.image)}" alt="${e(o.name)}" style="width:100%;height:260px;object-fit:cover;border-radius:12px" />`
+              : '<div style="width:100%;height:260px;border-radius:12px;background:#efe9fb;display:grid;place-items:center;font-size:56px">🌱</div>'}
+          </div>
+          <div class="col-md-7">
+            <div class="prod-name" style="font-size:23px">${e(o.name)}</div>
+            <div class="prod-meta mt-2">${U.faseBadge(o.fase)}
+              <span class="badge bg-light text-dark border">${e(o.jenis)}</span>
+              ${o.varietas ? `<span class="badge bg-light text-dark border">${e(o.varietas)}</span>` : ''}</div>
+            <div class="mt-2">
+              ${revs.length
+                ? `<span class="stars" style="font-size:17px">★ ${avg}</span> <span class="cell-sub">(${revs.length} ulasan)</span> <a href="#ulasan" class="link-plain">lihat isi ulasan ↓</a>`
+                : '<span class="cell-sub">Belum ada ulasan</span>'}
+            </div>
+            <div class="prod-desc mt-2" style="font-size:14.5px">${e(o.description || 'Belum ada deskripsi.')}</div>
+            <div class="price-tag mt-2" style="font-size:24px">${e(S.rp(c.price))}</div>
+            <div class="cell-sub mb-3">Stok: ${o.stock} pot ${o.stock > 0 ? '' : '· <span class="badge bg-danger">Habis</span>'}</div>
+            <div class="d-flex gap-2 flex-wrap">
+              ${o.stock > 0
+                ? `<button class="btn-accent" data-cart="${c.id}"><i class="bi bi-cart-plus"></i> Masukkan Keranjang</button>`
+                : ''}
+              <a class="btn-soft d-inline-block text-decoration-none" href="customer-ulasan.html">
+                <i class="bi bi-pencil-square me-1"></i> ${myRev ? 'Kelola Ulasan Saya' : 'Beri Ulasan'}</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel-pad" id="ulasan">
+        <div class="panel-title"><i class="bi bi-chat-square-text"></i> Ulasan Produk <span class="cell-sub">(${revs.length})</span></div>
+        <div class="panel-sub">Ditulis oleh customer yang sudah membeli</div>
+        ${reviewList}
+      </div>`;
+
+    return {
+      title: 'Detail Anggrek', nav: 'customer', active: 'customer-katalog.html', content: html,
+      after: function (root) {
+        root.querySelectorAll('[data-cart]').forEach(function (btn) {
+          btn.onclick = function () {
+            var cart = S.state.cart;
+            var ex = cart.find(function (i) { return i.id === c.id; });
+            if (ex) ex.qty += 1;
+            else cart.push({ id: c.id, qty: 1 });
             S.save();
             U.toast('Ditambahkan ke keranjang 🛒');
             App.render();

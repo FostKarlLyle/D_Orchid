@@ -129,6 +129,37 @@ router.get('/katalog', (req, res) => {
   res.render('customer/catalog', { title: 'Katalog Anggrek', items, all, q });
 });
 
+/* Detail katalog: info produk lengkap + semua ulasan pembeli */
+router.get('/katalog/:id', (req, res) => {
+  const c = db.prepare('SELECT * FROM catalog WHERE id = ?').get(Number(req.params.id));
+  const o = c ? db.prepare('SELECT * FROM orchids WHERE id = ?').get(c.orchid_id) : null;
+  if (!c || !c.is_active || !o) {
+    flash(req, 'warning', 'Produk katalog tidak ditemukan.');
+    return res.redirect('/customer/katalog');
+  }
+  const reviews = db
+    .prepare(
+      `SELECT r.*, u.name AS customer_name
+       FROM reviews r LEFT JOIN users u ON u.id = r.customer_id
+       WHERE r.catalog_id = ? ORDER BY r.created_at DESC`
+    )
+    .all(c.id);
+  const agg = db
+    .prepare('SELECT COALESCE(ROUND(AVG(rating), 1), 0) AS avg, COUNT(*) AS n FROM reviews WHERE catalog_id = ?')
+    .get(c.id);
+  const myReview = reviews.find(r => r.customer_id === res.locals.user.id);
+  res.render('customer/detail', {
+    title: o.name,
+    orchid: o,
+    price: c.price,
+    catalog_id: c.id,
+    reviews,
+    avg: agg.avg,
+    count: agg.n,
+    myReview: !!myReview,
+  });
+});
+
 /* ============================================================
    3. KERANJANG BELANJA SEMENTARA + CHECKOUT
    ============================================================ */
