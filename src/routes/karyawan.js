@@ -25,34 +25,80 @@ router.get('/akun', (req, res) => {
       )
       .get(akun.id).v,
   };
-  res.render('karyawan/account', { title: 'Data Akun', akun, stats });
+  const mode = req.query.mode === 'edit' || req.query.mode === 'password' ? req.query.mode : 'view';
+  res.render('karyawan/account', { title: 'Data Akun', akun, stats, mode });
 });
 
+/* Ubah data profil — tanpa password (password lewat POST /akun/password) */
 router.post('/akun', (req, res) => {
   const akun = db.prepare('SELECT * FROM users WHERE id = ?').get(res.locals.user.id);
-  const { name, email, phone = '', address = '', password } = req.body;
+  const back = '/karyawan/akun?mode=edit';
+  const { name, email, phone = '', address = '' } = req.body;
   if (!name || !email) {
     flash(req, 'danger', 'Nama dan email wajib diisi.');
-    return res.redirect('/karyawan/akun');
+    return res.redirect(back);
+  }
+  const nm = String(name).trim();
+  const em = String(email).trim().toLowerCase();
+  if (nm.length < 2) {
+    flash(req, 'danger', 'Nama lengkap minimal 2 karakter.');
+    return res.redirect(back);
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) {
+    flash(req, 'danger', 'Format email tidak valid. Contoh: nama@email.com');
+    return res.redirect(back);
   }
   const exists = db
     .prepare('SELECT id FROM users WHERE email = ? AND id != ?')
-    .get(String(email).trim().toLowerCase(), akun.id);
+    .get(em, akun.id);
   if (exists) {
     flash(req, 'danger', 'Email sudah digunakan akun lain.');
-    return res.redirect('/karyawan/akun');
+    return res.redirect(back);
   }
   db.prepare('UPDATE users SET name = ?, email = ?, phone = ?, address = ? WHERE id = ?').run(
-    String(name).trim(),
-    String(email).trim().toLowerCase(),
+    nm,
+    em,
     String(phone).trim(),
     String(address).trim(),
     akun.id
   );
-  if (password && String(password).length >= 6) {
-    db.prepare('UPDATE users SET password = ? WHERE id = ?').run(bcrypt.hashSync(String(password), 10), akun.id);
-  }
   flash(req, 'success', 'Data akun berhasil diperbarui.');
+  res.redirect('/karyawan/akun');
+});
+
+/* Ganti password — wajib password saat ini + aturan seperti register */
+router.post('/akun/password', (req, res) => {
+  const akun = db.prepare('SELECT * FROM users WHERE id = ?').get(res.locals.user.id);
+  const back = '/karyawan/akun?mode=password';
+  const current = String(req.body.current || '');
+  const newpw = String(req.body.newpw || '');
+  const confirmpw = String(req.body.confirmpw || '');
+  if (!current || !newpw || !confirmpw) {
+    flash(req, 'danger', 'Semua kolom password wajib diisi.');
+    return res.redirect(back);
+  }
+  if (!bcrypt.compareSync(current, akun.password)) {
+    flash(req, 'danger', 'Password saat ini salah.');
+    return res.redirect(back);
+  }
+  if (newpw.length < 8) {
+    flash(req, 'danger', 'Password minimal 8 karakter.');
+    return res.redirect(back);
+  }
+  if (!/[A-Za-z]/.test(newpw) || !/\d/.test(newpw)) {
+    flash(req, 'danger', 'Password harus mengandung huruf dan angka.');
+    return res.redirect(back);
+  }
+  if (bcrypt.compareSync(newpw, akun.password)) {
+    flash(req, 'danger', 'Password baru tidak boleh sama dengan password lama.');
+    return res.redirect(back);
+  }
+  if (newpw !== confirmpw) {
+    flash(req, 'danger', 'Konfirmasi password tidak sama.');
+    return res.redirect(back);
+  }
+  db.prepare('UPDATE users SET password = ? WHERE id = ?').run(bcrypt.hashSync(newpw, 10), akun.id);
+  flash(req, 'success', 'Password berhasil diganti. Gunakan password baru saat login berikutnya.');
   res.redirect('/karyawan/akun');
 });
 

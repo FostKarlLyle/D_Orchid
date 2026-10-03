@@ -367,3 +367,16 @@ body {
   .topbar-meta { display: none; }
   .bar-row { grid-template-columns: 96px 1fr 40px; }
 }
+
+/* — aturan password live (register & ganti password akun) — */
+.pw-rules { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12.5px; margin-top: 6px; }
+.pw-rules span { color: #9ca3af; transition: color .15s; }
+.pw-rules span::before { content: "○ "; }
+.pw-rules span.ok { color: #16a34a; font-weight: 600; }
+.pw-rules span.ok::before { content: "✓ "; }
+
+/* — baris data mode "lihat" pada halaman Data Akun — */
+.detail-row { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 0; border-bottom: 1px dashed rgba(148, 163, 184, .35); }
+.detail-row:last-child { border-bottom: 0; }
+.detail-row .dr-label { flex: 0 0 170px; color: #9ca3af; font-size: 13.5px; align-self: center; }
+.detail-row .dr-value { flex: 1 1 200px; font-weight: 600; word-break: break-word; }

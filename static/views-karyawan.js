@@ -7,29 +7,81 @@
   var V = {};
 
   /* ============ DATA AKUN ============ */
-  V.account = function () {
+  V.account = function (query) {
     var akun = S.currentUser();
+    var mode = query && (query.mode === 'edit' || query.mode === 'password') ? query.mode : 'view';
+    var HERE = 'karyawan-akun.html';
     var myOrchids = S.state.orchids.filter(function (o) { return o.created_by === akun.id; });
     var inCatalog = myOrchids.filter(function (o) { return S.catalogOfOrchid(o.id); }).length;
 
-    var html = U.pageHead('Data Akun', 'Lihat dan ubah data akun kamu') + `
+    function detailRow(label, value) {
+      return '<div class="detail-row"><div class="dr-label">' + e(label) + '</div>' +
+        '<div class="dr-value">' + (value ? e(value) : '<span class="text-muted-2">—</span>') + '</div></div>';
+    }
+
+    var panelBody;
+    if (mode === 'edit') {
+      panelBody = `
+        <form data-form="profil" class="row g-3">
+          <div class="col-12"><div id="formError" role="alert"></div></div>
+          <div class="col-md-6"><label class="form-label">Nama Lengkap *</label>
+            <input type="text" name="name" class="form-control" required value="${e(akun.name)}" /></div>
+          <div class="col-md-6"><label class="form-label">Email *</label>
+            <input type="email" name="email" class="form-control" required value="${e(akun.email)}" /></div>
+          <div class="col-md-6"><label class="form-label">No. HP</label>
+            <input type="text" name="phone" class="form-control" value="${e(akun.phone)}" placeholder="08xx-xxxx-xxxx" /></div>
+          <div class="col-md-6"><label class="form-label">Alamat</label>
+            <input type="text" name="address" class="form-control" value="${e(akun.address)}" /></div>
+          <div class="col-12 d-flex gap-2 flex-wrap">
+            <button class="btn-accent" type="submit"><i class="bi bi-check2-circle me-1"></i> Simpan Perubahan</button>
+            <a class="btn-soft text-decoration-none" href="${HERE}"><i class="bi bi-x-lg me-1"></i> Batal</a>
+          </div>
+        </form>`;
+    } else if (mode === 'password') {
+      panelBody = `
+        <form data-form="password" class="row g-3">
+          <div class="col-12"><div id="formError" role="alert"></div></div>
+          <div class="col-md-6"><label class="form-label">Password Saat Ini *</label>
+            <input type="password" name="current" class="form-control" required autocomplete="current-password" /></div>
+          <div class="col-md-6"><label class="form-label">Password Baru *</label>
+            <input type="password" name="newpw" class="form-control" required minlength="8" autocomplete="new-password" />
+            <div class="pw-rules" aria-live="polite">
+              <span id="pwLen">min. 8 karakter</span>
+              <span id="pwLetter">ada huruf</span>
+              <span id="pwDigit">ada angka</span>
+            </div></div>
+          <div class="col-md-6"><label class="form-label">Konfirmasi Password Baru *</label>
+            <input type="password" name="confirmpw" class="form-control" required minlength="8" autocomplete="new-password" /></div>
+          <div class="col-12 d-flex gap-2 flex-wrap">
+            <button class="btn-accent" type="submit"><i class="bi bi-shield-lock me-1"></i> Simpan Password</button>
+            <a class="btn-soft text-decoration-none" href="${HERE}"><i class="bi bi-x-lg me-1"></i> Batal</a>
+          </div>
+        </form>`;
+    } else {
+      panelBody = `
+        <div class="akun-detail">
+          ${detailRow('Nama Lengkap', akun.name)}
+          ${detailRow('Email', akun.email)}
+          ${detailRow('No. HP', akun.phone)}
+          ${detailRow('Alamat', akun.address)}
+          ${detailRow('Terdaftar', S.fmtDateOnly(akun.created_at))}
+        </div>
+        <div class="d-flex gap-2 flex-wrap mt-3">
+          <a class="btn-accent" href="${HERE}?mode=edit"><i class="bi bi-pencil-square me-1"></i> Edit Profil</a>
+          <a class="btn-soft text-decoration-none" href="${HERE}?mode=password"><i class="bi bi-key me-1"></i> Ganti Password</a>
+        </div>`;
+    }
+
+    var sub = mode === 'edit' ? 'Mode edit — ubah data profil lalu simpan'
+      : mode === 'password' ? 'Ganti password — wajib isi password saat ini'
+      : 'Lihat data akun kamu';
+
+    var html = U.pageHead('Data Akun', sub) + `
       <div class="grid-2-1">
         <div class="panel panel-pad">
           <div class="panel-title"><i class="bi bi-person-badge"></i> Profil Saya</div>
           <div class="panel-sub">Role: <span class="badge bg-primary">Karyawan / Tenaga Perawatan Anggrek</span></div>
-          <form data-form="akun" class="row g-3">
-            <div class="col-md-6"><label class="form-label">Nama Lengkap *</label>
-              <input type="text" name="name" class="form-control" required value="${e(akun.name)}" /></div>
-            <div class="col-md-6"><label class="form-label">Email *</label>
-              <input type="email" name="email" class="form-control" required value="${e(akun.email)}" /></div>
-            <div class="col-md-6"><label class="form-label">No. HP</label>
-              <input type="text" name="phone" class="form-control" value="${e(akun.phone)}" placeholder="08xx-xxxx-xxxx" /></div>
-            <div class="col-md-6"><label class="form-label">Ganti Password <span class="text-muted-2">(opsional)</span></label>
-              <input type="password" name="password" class="form-control" minlength="6" placeholder="Kosongkan jika tidak diganti" /></div>
-            <div class="col-12"><label class="form-label">Alamat</label>
-              <input type="text" name="address" class="form-control" value="${e(akun.address)}" /></div>
-            <div class="col-12"><button class="btn-accent" type="submit"><i class="bi bi-check2-circle me-1"></i> Simpan Perubahan</button></div>
-          </form>
+          ${panelBody}
         </div>
         <div class="panel panel-pad">
           <div class="panel-title"><i class="bi bi-bar-chart-fill"></i> Aktivitas Saya</div>
@@ -48,25 +100,64 @@
     return {
       title: 'Data Akun', nav: 'karyawan', active: 'karyawan-akun.html', content: html,
       after: function (root) {
-        root.querySelector('[data-form="akun"]').onsubmit = function (ev) {
-          ev.preventDefault();
-          var name = root.querySelector('[name=name]').value.trim();
-          var email = root.querySelector('[name=email]').value.trim().toLowerCase();
-          if (!name || !email) return U.toast('Nama dan email wajib diisi.', 'err');
-          var dup = S.state.users.find(function (u) { return u.email.toLowerCase() === email && u.id !== akun.id; });
-          if (dup) return U.toast('Email sudah digunakan akun lain.', 'err');
-          akun.name = name; akun.email = email;
-          akun.phone = root.querySelector('[name=phone]').value.trim();
-          akun.address = root.querySelector('[name=address]').value.trim();
-          var pw = root.querySelector('[name=password]').value;
-          if (pw) {
-            if (pw.length < 6) return U.toast('Password minimal 6 karakter.', 'err');
-            akun.password = pw;
+        function showError(msg, field) {
+          var box = root.querySelector('#formError');
+          if (!box) return;
+          box.innerHTML = '<div class="alert alert-danger alert-dismissible fade show app-alert" role="alert">' +
+            '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + e(msg) +
+            '<button type="button" class="btn-close" data-dismiss="1" aria-label="Tutup"></button></div>';
+          var close = box.querySelector('[data-dismiss]');
+          if (close) close.onclick = function () { box.innerHTML = ''; };
+          if (field) field.focus();
+        }
+
+        var profil = root.querySelector('[data-form="profil"]');
+        if (profil) {
+          profil.onsubmit = function (ev) {
+            ev.preventDefault();
+            var nameF = profil.querySelector('[name=name]'), emailF = profil.querySelector('[name=email]');
+            var name = nameF.value.trim(), email = emailF.value.trim().toLowerCase();
+            if (!name || !email) return showError('Nama dan email wajib diisi.', !name ? nameF : emailF);
+            if (name.length < 2) return showError('Nama lengkap minimal 2 karakter.', nameF);
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return showError('Format email tidak valid. Contoh: nama@email.com', emailF);
+            var dup = S.state.users.find(function (u) { return u.email.toLowerCase() === email && u.id !== akun.id; });
+            if (dup) return showError('Email sudah digunakan akun lain.', emailF);
+            akun.name = name; akun.email = email;
+            akun.phone = profil.querySelector('[name=phone]').value.trim();
+            akun.address = profil.querySelector('[name=address]').value.trim();
+            S.save();
+            U.flash('success', 'Data akun berhasil diperbarui.');
+            location.href = HERE;
+          };
+        }
+
+        var pwForm = root.querySelector('[data-form="password"]');
+        if (pwForm) {
+          var newF = pwForm.querySelector('[name=newpw]');
+          function tickPw() {
+            var v = newF.value;
+            var L = pwForm.querySelector('#pwLen'), H = pwForm.querySelector('#pwLetter'), D = pwForm.querySelector('#pwDigit');
+            if (L) L.classList.toggle('ok', v.length >= 8);
+            if (H) H.classList.toggle('ok', /[A-Za-z]/.test(v));
+            if (D) D.classList.toggle('ok', /\d/.test(v));
           }
-          S.save();
-          U.flash('success', 'Data akun berhasil diperbarui.');
-          App.render();
-        };
+          if (newF) newF.addEventListener('input', tickPw);
+          pwForm.onsubmit = function (ev) {
+            ev.preventDefault();
+            var curF = pwForm.querySelector('[name=current]'), cfF = pwForm.querySelector('[name=confirmpw]');
+            var cur = curF.value, nv = newF.value, cf = cfF.value;
+            if (!cur || !nv || !cf) return showError('Semua kolom password wajib diisi.');
+            if (cur !== akun.password) return showError('Password saat ini salah.', curF);
+            if (nv.length < 8) return showError('Password minimal 8 karakter.', newF);
+            if (!/[A-Za-z]/.test(nv) || !/\d/.test(nv)) return showError('Password harus mengandung huruf dan angka.', newF);
+            if (nv === akun.password) return showError('Password baru tidak boleh sama dengan password lama.', newF);
+            if (nv !== cf) return showError('Konfirmasi password tidak sama.', cfF);
+            akun.password = nv;
+            S.save();
+            U.flash('success', 'Password berhasil diganti. Gunakan password baru saat login berikutnya.');
+            location.href = HERE;
+          };
+        }
       }
     };
   };
