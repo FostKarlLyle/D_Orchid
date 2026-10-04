@@ -76,7 +76,7 @@
       : mode === 'password' ? 'Ganti password — wajib isi password saat ini'
       : 'Lihat data akun kamu';
 
-    var html = U.pageHead('Data Akun', sub) + `
+    var html = U.pageHead('Profil', sub) + `
       <div class="grid-2-1">
         <div class="panel panel-pad">
           <div class="panel-title"><i class="bi bi-person-badge"></i> Profil Saya</div>
@@ -98,7 +98,7 @@
       </div>`;
 
     return {
-      title: 'Data Akun', nav: 'karyawan', active: 'karyawan-akun.html', content: html,
+      title: 'Profil', nav: 'karyawan', active: 'karyawan-akun.html', content: html,
       after: function (root) {
         function showError(msg, field) {
           var box = root.querySelector('#formError');

@@ -433,7 +433,7 @@ section('customer: detail katalog + isi ulasan produk');
 /* ============================================================
    J. DATA AKUN CUSTOMER — mode lihat / edit / ganti password
    ============================================================ */
-section('customer: Data Akun (tampil → tombol edit, password terpisah)');
+section('customer: Profil (tampil → tombol edit, password terpisah)');
 {
   const t = openPage('customer/customer-akun.html', { user: EMAILS.sari });
   ok(t.qa('.detail-row').length === 5, 'mode lihat: 5 baris data');
@@ -544,7 +544,7 @@ section('customer: Data Akun (tampil → tombol edit, password terpisah)');
 /* ============================================================
    K. DATA AKUN KARYAWAN — mode lihat / edit / password
    ============================================================ */
-section('karyawan: Data Akun (tampil → tombol edit, password terpisah)');
+section('karyawan: Profil (tampil → tombol edit, password terpisah)');
 {
   const t = openPage('karyawan/karyawan-akun.html', { user: EMAILS.karyawan });
   ok(t.qa('.detail-row').length === 5, 'mode lihat: 5 baris data');

@@ -26,7 +26,7 @@ router.get('/akun', (req, res) => {
       .get(akun.id).v,
   };
   const mode = req.query.mode === 'edit' || req.query.mode === 'password' ? req.query.mode : 'view';
-  res.render('karyawan/account', { title: 'Data Akun', akun, stats, mode });
+  res.render('karyawan/account', { title: 'Profil', akun, stats, mode });
 });
 
 /* Ubah data profil — tanpa password (password lewat POST /akun/password) */
