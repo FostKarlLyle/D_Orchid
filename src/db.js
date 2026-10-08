@@ -60,6 +60,8 @@ CREATE TABLE IF NOT EXISTS orders (
   status TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending','diproses','selesai','dibatalkan')),
   note TEXT DEFAULT '',
+  alamat_pengiriman TEXT NOT NULL DEFAULT '',
+  metode_pembayaran TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
 );
@@ -92,5 +94,14 @@ CREATE TABLE IF NOT EXISTS gallery (
   created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
 );
 `);
+
+/* Migrasi ringan untuk DB yang sudah ada (kolom pesanan — UC24) */
+const orderCols = db.prepare('PRAGMA table_info(orders)').all().map((c) => c.name);
+if (!orderCols.includes('alamat_pengiriman')) {
+  db.exec("ALTER TABLE orders ADD COLUMN alamat_pengiriman TEXT NOT NULL DEFAULT ''");
+}
+if (!orderCols.includes('metode_pembayaran')) {
+  db.exec("ALTER TABLE orders ADD COLUMN metode_pembayaran TEXT NOT NULL DEFAULT ''");
+}
 
 module.exports = db;

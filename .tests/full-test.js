@@ -93,7 +93,7 @@ ok(fs.existsSync(path.join(ROOT, '.nojekyll')), '.nojekyll ada');
 const nAdmin = fs.readdirSync(path.join(ROOT, 'admin')).filter(f => f.endsWith('.html')).length;
 const nKaryawan = fs.readdirSync(path.join(ROOT, 'karyawan')).filter(f => f.endsWith('.html')).length;
 const nCustomer = fs.readdirSync(path.join(ROOT, 'customer')).filter(f => f.endsWith('.html')).length;
-ok(nAdmin === 15, 'admin/ = 15 halaman (dapat ' + nAdmin + ')');
+ok(nAdmin === 16, 'admin/ = 16 halaman (dapat ' + nAdmin + ')');
 ok(nKaryawan === 4, 'karyawan/ = 4 halaman (dapat ' + nKaryawan + ')');
 ok(nCustomer === 7, 'customer/ = 7 halaman (dapat ' + nCustomer + ')');
 
@@ -309,6 +309,39 @@ section('admin: katalog/pesanan/ulasan/galeri/laporan');
   ok(has(pes.view(), 'Menunggu'), 'pesanan: filter status render');
   const det = openPage('admin/admin-pesanan-detail.html', { user: EMAILS.admin, query: 'id=1' });
   ok(!has(det.view(), 'Halaman tidak ditemukan'), 'detail pesanan render');
+  /* UC24: buat pesanan (static) — field alamat + metode */
+  const frm = openPage('admin/admin-pesanan-tambah.html', { user: EMAILS.admin });
+  ok(!has(frm.view(), 'Halaman tidak ditemukan'), 'halaman Buat Pesanan render');
+  const ofrm = frm.q('form[data-form="pesanan"]');
+  ok(!!ofrm, 'form buat pesanan ada');
+  ok(!!ofrm.querySelector('[name="alamat"]') && !!ofrm.querySelector('[name="metode"]'),
+    'UC24: field Alamat Pengiriman + Metode Pembayaran ada');
+  const ords0 = frm.S.state.orders.length;
+  const sariId = frm.S.state.users.find(u => u.email === 'sari@mail.com').id;
+  ofrm.querySelector('[name="customer_id"]').value = String(sariId);
+  ofrm.querySelector('.item-row select').value = '1';
+  ofrm.querySelector('.item-row input[name="qty"]').value = '2';
+  ofrm.querySelector('[name="alamat"]').value = 'Jl. Mawar No. 1, Jember';
+  /* metode masih kosong → ditolak */
+  frm.submit(ofrm);
+  ok(frm.S.state.orders.length === ords0, 'metode kosong → pesanan ditolak');
+  ok(has(frm.q('#formError').textContent, 'Metode pembayaran'), 'pesan metode wajib tampil');
+  /* lengkapi → sukses */
+  const catId1 = frm.S.catalogById(1);
+  const stockBefore = frm.S.orchidById(catId1.orchid_id).stock;
+  ofrm.querySelector('[name="metode"]').value = 'QRIS';
+  ofrm.querySelector('[name="note"]').value = 'Titip ke resepsionis';
+  frm.submit(ofrm);
+  ok(frm.S.state.orders.length === ords0 + 1, 'UC24: pesanan baru tersimpan');
+  const newOrder = frm.S.state.orders[frm.S.state.orders.length - 1];
+  ok(newOrder.alamat === 'Jl. Mawar No. 1, Jember' && newOrder.metode === 'QRIS', 'alamat + metode tersimpan');
+  ok(newOrder.status === 'pending', 'status awal pesanan = pending');
+  ok(frm.S.orchidById(catId1.orchid_id).stock === stockBefore - 2, 'stok berkurang 2 sesuai jumlah pesanan');
+  ok(frm.events[0] === 'admin-pesanan.html', 'sukses → redirect daftar pesanan');
+  ok(has(frm.flashText(), 'berhasil dibuat'), 'flash sukses buat pesanan');
+  const det2 = openPage('admin/admin-pesanan-detail.html', { user: EMAILS.admin, query: 'id=' + newOrder.id, state: JSON.parse(JSON.stringify(frm.S.state)) });
+  ok(has(det2.view(), 'Jl. Mawar No. 1, Jember') && has(det2.view(), 'QRIS'),
+    'detail pesanan menampilkan alamat + metode');
   const uls = openPage('admin/admin-ulasan.html', { user: EMAILS.admin });
   ok(!has(uls.view(), 'Halaman tidak ditemukan'), 'ulasan render');
   const gal = openPage('admin/admin-galeri.html', { user: EMAILS.admin });
@@ -365,12 +398,50 @@ section('customer: katalog/keranjang/ulasan');
     t.click(co);
     ok(has(t.toast(), 'checkout dinonaktifkan'), 'checkout → toast prototipe (tanpa transaksi)');
   }
+  /* UC26: ubah jumlah → pesan sukses / stok tidak mencukupi */
+  const inc = Array.from(t.qa('[data-qty]')).find(b => (b.getAttribute('data-qty') || '').endsWith(':1'));
+  ok(!!inc, 'tombol + jumlah ada');
+  t.click(inc);
+  ok(has(t.toast(), 'Pesanan berhasil diperbarui'), 'UC26: qty + → "Pesanan berhasil diperbarui"');
+  const cid0 = t.S.state.cart[0].id;
+  const catItem = t.S.activeCatalog().find(c => c.catalog_id === cid0);
+  if (catItem) {
+    t.S.state.cart[0].qty = catItem.stock;
+    t.S.save();
+    t.click(Array.from(t.qa('[data-qty]')).find(b => (b.getAttribute('data-qty') || '').endsWith(':1')));
+    ok(has(t.toast(), 'Stok tidak mencukupi'), 'UC26 alt: melebihi stok → "Stok tidak mencukupi"');
+  }
+  /* UC28: hapus item dengan konfirmasi */
+  const cnt = t.S.state.cart.length;
+  t.w.confirm = () => false;
+  t.click(t.q('[data-del]'));
+  ok(t.S.state.cart.length === cnt, 'UC28 alt: confirm=false → item tetap di keranjang');
+  t.w.confirm = () => true;
+  t.click(t.q('[data-del]'));
+  ok(t.S.state.cart.length === cnt - 1, 'UC28: confirm=true → item terhapus');
+  ok(has(t.toast(), 'Pesanan berhasil dihapus'), 'UC28: pesan "Pesanan berhasil dihapus"');
 }
 {
   const t = openPage('customer/customer-pesanan.html', { user: EMAILS.sari });
   ok(!has(t.view(), 'Halaman tidak ditemukan'), 'pesanan saya render');
-  const u = openPage('customer/customer-ulasan.html', { user: EMAILS.sari });
-  ok(!has(u.view(), 'Halaman tidak ditemukan'), 'ulasan render');
+  const beri = t.qa('a').find(a => (a.getAttribute('href') || '').includes('customer-ulasan.html'));
+  ok(!!beri && has(beri.textContent, 'Ulasan'), 'UC29: tombol Beri/Kelola Ulasan ada di tiap pesanan');
+  if (beri && (beri.getAttribute('href') || '').includes('produk=')) {
+    ok(has(beri.textContent, 'Beri Ulasan'), 'label "Beri Ulasan" bila ada produk belum terulas');
+  }
+  /* preselect ?produk= — pakai katalog aktif yang belum diulas sari */
+  const sid = t.S.currentUser().id;
+  const pre = t.S.activeCatalog().find(c =>
+    !t.S.state.reviews.some(r => r.catalog_id === c.catalog_id && r.customer_id === sid));
+  if (pre) {
+    const u = openPage('customer/customer-ulasan.html', { user: EMAILS.sari, query: 'produk=' + pre.catalog_id });
+    const sel = u.q('select[name="catalog_id"]');
+    ok(!!sel && sel.value === String(pre.catalog_id), 'UC29: ?produk= ter-preselect di form ulasan');
+  } else {
+    ok(true, 'preselect: semua katalog sudah diulas sari (seed berubah)');
+  }
+  const u2 = openPage('customer/customer-ulasan.html', { user: EMAILS.sari });
+  ok(!has(u2.view(), 'Halaman tidak ditemukan'), 'ulasan render');
   const g = openPage('customer/customer-galeri.html', { user: EMAILS.sari });
   ok(!has(g.view(), 'Halaman tidak ditemukan'), 'galeri render');
 }
@@ -382,7 +453,11 @@ section('customer: detail katalog + isi ulasan produk');
 {
   const t = openPage('customer/customer-katalog.html', { user: EMAILS.customer });
   ok(t.qa('.prod-card[data-detail]').length >= 6, 'semua kartu produk punya data-detail (klik = buka detail)');
-  ok(!t.q('a[href^="customer-katalog-detail"]'), 'tombol Detail terpisah sudah dihapus dari kartu');
+  ok(!t.qa('.prod-card a').some(a => !(a.getAttribute('href') || '').includes('#ulasan')),
+    'tombol Detail terpisah sudah dihapus dari kartu (hanya link Ulasan #ulasan)');
+  const ulsLink = t.q('a[data-ulasan]');
+  ok(!!ulsLink && (ulsLink.getAttribute('href') || '').includes('#ulasan'),
+    'UC30: tombol Ulasan di kartu katalog → detail#ulasan');
   /* klik kartu (bukan tombol) → langsung buka detail */
   const first = t.q('.prod-card[data-detail]');
   t.click(first);
@@ -474,7 +549,8 @@ section('customer: Profil (tampil → tombol edit, password terpisah)');
   const form = t.q('form[data-form="profil"]');
   ok(!!form, 'mode edit: form profil muncul (setelah klik Edit)');
   ok(!!t.q('input[name="name"]'), 'mode edit: input nama ada');
-  ok(!t.q('input[name="password"]'), 'mode edit: TIDAK ada kolom password (password dipisah)');
+  ok(!t.q('input[name="password"]'), 'mode edit: input name="password" lama tidak ada');
+  ok(!!t.q('input[name="newpw"]'), 'UC12: kolom password opsional ada di form edit profil');
   ok(!!t.q('a[href="customer-akun.html"]'), 'tombol Batal ada');
   /* validasi inline */
   form.elements['email'].value = 'not-an-email';
@@ -492,6 +568,15 @@ section('customer: Profil (tampil → tombol edit, password terpisah)');
   t.submit(form);
   ok(t.S.currentUser().name === 'Sari W. Baru', 'edit sukses → nama tersimpan');
   ok(has(t.flashText(), 'Data akun berhasil diperbarui'), 'edit sukses → flash');
+  /* password opsional di form edit (UC12) */
+  const pwB = t.S.currentUser().password;
+  form.elements['newpw'].value = 'abc9';
+  t.submit(form);
+  ok(has(t.q('#formError').textContent, 'Password minimal 8 karakter'), 'edit: password pendek → inline error');
+  ok(t.S.currentUser().password === pwB, 'edit gagal password → password lama tidak berubah');
+  form.elements['newpw'].value = 'xyzZY123';
+  t.submit(form);
+  ok(t.S.currentUser().password === 'xyzZY123', 'UC12: password opsional terisi → tersimpan dari form edit');
 }
 {
   const t = openPage('customer/customer-akun.html', { user: EMAILS.sari, query: 'mode=password' });
@@ -609,7 +694,7 @@ section('utilitas & migrasi');
   const pages = [
     ['admin/admin-dashboard.html', []], ['admin/admin-akun.html', ['role=admin']], ['admin/admin-akun-tambah.html', ['role=karyawan']],
     ['admin/admin-akun-ubah.html', ['id=2']], ['admin/admin-katalog.html', []], ['admin/admin-katalog-tambah.html', []],
-    ['admin/admin-katalog-harga.html', ['id=1']], ['admin/admin-katalog-ubah.html', ['id=1']], ['admin/admin-pesanan.html', []],
+    ['admin/admin-katalog-harga.html', ['id=1']], ['admin/admin-katalog-ubah.html', ['id=1']], ['admin/admin-pesanan.html', []], ['admin/admin-pesanan-tambah.html', []],
     ['admin/admin-pesanan-detail.html', ['id=1']], ['admin/admin-ulasan.html', []], ['admin/admin-galeri.html', []],
     ['admin/admin-galeri-tambah.html', []], ['admin/admin-galeri-ubah.html', ['id=1']], ['admin/admin-laporan.html', ['from=2020-01-01', 'to=2030-12-31']],
     ['karyawan/karyawan-anggrek.html', []], ['karyawan/karyawan-anggrek-tambah.html', []], ['karyawan/karyawan-anggrek-ubah.html', ['id=1']],
@@ -625,7 +710,7 @@ section('utilitas & migrasi');
     const viewOk = !has(t.view(), 'Halaman tidak ditemukan') && (t.view().length > 20 || t.events.length > 0);
     if (!viewOk) bad.push(rel);
   }
-  ok(bad.length === 0, '26 halaman ter-render (jelek: ' + bad.join(', ') + ')');
+  ok(bad.length === 0, '27 halaman ter-render (jelek: ' + bad.join(', ') + ')');
 }
 
 /* ============================================================ */

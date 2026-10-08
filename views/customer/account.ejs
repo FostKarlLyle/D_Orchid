@@ -30,6 +30,12 @@
         <label class="form-label">Alamat Pengiriman</label>
         <input type="text" name="address" class="form-control" value="<%= akun.address %>" placeholder="Alamat lengkap" />
       </div>
+      <div class="col-md-6">
+        <label class="form-label">Password Baru (opsional)</label>
+        <input type="password" name="newpw" class="form-control" minlength="8" autocomplete="new-password"
+          placeholder="Kosongkan jika tidak diganti" />
+        <div class="pw-rules" style="margin-top:5px"><span>min. 8</span><span>ada huruf</span><span>ada angka</span></div>
+      </div>
       <div class="col-12 d-flex gap-2 flex-wrap">
         <button class="btn-accent" type="submit"><i class="bi bi-check2-circle me-1"></i> Simpan Perubahan</button>
         <a class="btn-soft text-decoration-none" href="/customer/akun"><i class="bi bi-x-lg me-1"></i> Batal</a>

@@ -32,7 +32,7 @@ router.get('/akun', (req, res) => {
 router.post('/akun', (req, res) => {
   const akun = db.prepare('SELECT * FROM users WHERE id = ?').get(res.locals.user.id);
   const back = '/customer/akun?mode=edit';
-  const { name, email, phone = '', address = '' } = req.body;
+  const { name, email, phone = '', address = '', newpw = '' } = req.body;
   if (!name || !email) {
     flash(req, 'danger', 'Nama dan email wajib diisi.');
     return res.redirect(back);
@@ -54,11 +54,22 @@ router.post('/akun', (req, res) => {
     flash(req, 'danger', 'Email sudah digunakan akun lain.');
     return res.redirect(back);
   }
-  db.prepare('UPDATE users SET name = ?, email = ?, phone = ?, address = ? WHERE id = ?').run(
+  if (newpw) {
+    if (newpw.length < 8 || !/[A-Za-z]/.test(newpw) || !/[0-9]/.test(newpw)) {
+      flash(req, 'danger', 'Password minimal 8 karakter dan harus mengandung huruf dan angka.');
+      return res.redirect(back);
+    }
+    if (bcrypt.compareSync(newpw, akun.password)) {
+      flash(req, 'danger', 'Password baru tidak boleh sama dengan password lama.');
+      return res.redirect(back);
+    }
+  }
+  db.prepare('UPDATE users SET name = ?, email = ?, phone = ?, address = ?, password = ? WHERE id = ?').run(
     nm,
     em,
     String(phone).trim(),
     String(address).trim(),
+    newpw ? bcrypt.hashSync(newpw, 10) : akun.password,
     akun.id
   );
   flash(req, 'success', 'Data akun berhasil diperbarui.');
@@ -254,6 +265,17 @@ router.get('/pesanan', (req, res) => {
       ...o,
       items: db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(o.id),
     }));
+  const reviewed = new Set(
+    db
+      .prepare('SELECT catalog_id FROM reviews WHERE customer_id = ?')
+      .all(res.locals.user.id)
+      .map((r) => r.catalog_id)
+  );
+  orders.forEach((o) => {
+    const target = o.items.find((i) => i.catalog_id && !reviewed.has(i.catalog_id));
+    o.reviewTarget = target ? target.catalog_id : (o.items[0] ? o.items[0].catalog_id : 0);
+    o.reviewedAll = !target && o.items.length > 0;
+  });
   res.render('customer/orders', { title: 'Pesanan Saya', orders });
 });
 
@@ -296,7 +318,8 @@ router.get('/ulasan', (req, res) => {
   const ratedTotal = myReviews.reduce((s, r) => s + r.rating, 0);
   const avg = myReviews.length ? (ratedTotal / myReviews.length).toFixed(1) : '-';
 
-  res.render('customer/reviews', { title: 'Ulasan Saya', myReviews, candidates, avg });
+  const preselect = Number(req.query.produk) || 0;
+  res.render('customer/reviews', { title: 'Ulasan Saya', myReviews, candidates, avg, preselect });
 });
 
 router.post('/ulasan', (req, res) => {

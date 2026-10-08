@@ -52,6 +52,7 @@
       REG['admin.catalogEdit'] = VAdmin.catalogEdit;
       REG['admin.orders'] = VAdmin.orders;
       REG['admin.orderDetail'] = VAdmin.orderDetail;
+      REG['admin.orderNew'] = VAdmin.orderNew;
       REG['admin.reviews'] = VAdmin.reviews;
       REG['admin.gallery'] = VAdmin.gallery;
       REG['admin.galleryForm'] = VAdmin.galleryForm;

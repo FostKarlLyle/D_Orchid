@@ -25,9 +25,16 @@
         <div class="cell-title" style="font-size:16px">Pesanan #<%= o.id %></div>
         <div class="cell-sub"><%= formatDate(o.created_at) %></div>
       </div>
-      <span class="badge <%= statusInfo(o.status).cls %>" style="font-size:13px;padding:7px 13px">
-        <%= statusInfo(o.status).label %>
-      </span>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <% if (o.items.length) { %>
+          <a class="btn-soft" href="/customer/ulasan<%= o.reviewedAll ? '' : '?produk=' + o.reviewTarget %>">
+            <i class="bi bi-chat-square-text"></i> <%= o.reviewedAll ? 'Kelola Ulasan' : 'Beri Ulasan' %>
+          </a>
+        <% } %>
+        <span class="badge <%= statusInfo(o.status).cls %>" style="font-size:13px;padding:7px 13px">
+          <%= statusInfo(o.status).label %>
+        </span>
+      </div>
     </div>
 
     <div class="table-responsive">

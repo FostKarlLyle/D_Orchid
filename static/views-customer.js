@@ -43,7 +43,13 @@
             <div class="prod-meta">${U.faseBadge(it.fase)}
               <span class="badge bg-light text-dark border">${e(it.jenis)}</span>
               ${it.varietas ? `<span class="badge bg-light text-dark border">${e(it.varietas)}</span>` : ''}</div>
-            ${it.review_count ? `<div><span class="stars">★ ${it.avg_rating}</span> <span class="cell-sub">(${it.review_count} ulasan)</span></div>` : ''}
+            <div class="d-flex align-items-center justify-content-between gap-2">
+              <div>${it.review_count
+                ? `<span class="stars">★ ${it.avg_rating}</span> <span class="cell-sub">(${it.review_count} ulasan)</span>`
+                : '<span class="cell-sub">Belum ada ulasan</span>'}</div>
+              <a class="btn-soft" style="padding:5px 11px;font-size:12.5px" data-ulasan="${it.catalog_id}"
+                 href="customer-katalog-detail.html?id=${it.catalog_id}#ulasan"><i class="bi bi-chat-square-text"></i> Ulasan</a>
+            </div>
             <div class="prod-desc">${e(it.description || '')}</div>
             <div class="prod-foot">
               <div><div class="price-tag" style="font-size:17px">${e(S.rp(it.price))}</div>
@@ -240,6 +246,8 @@
             if (c && line.qty > c.stock) {
               line.qty = c.stock;
               U.toast('Stok tidak mencukupi (tersisa ' + c.stock + ').', 'err');
+            } else {
+              U.toast('Pesanan berhasil diperbarui.');
             }
             S.save();
             App.render();
@@ -248,9 +256,10 @@
         root.querySelectorAll('[data-del]').forEach(function (btn) {
           btn.onclick = function () {
             var id = Number(btn.getAttribute('data-del'));
+            if (!confirm('Apakah Anda yakin menghapus pesanan ini?')) return;
             S.state.cart = S.state.cart.filter(function (i) { return i.id !== id; });
             S.save();
-            U.toast('Item dihapus dari keranjang.');
+            U.toast('Pesanan berhasil dihapus.');
             App.render();
           };
         });
@@ -277,12 +286,20 @@
     } else {
       html += orders.map(o => {
         var items = S.itemsOf(o.id);
+        var target = items.find(function (i) {
+          return i.catalog_id && !S.state.reviews.some(function (r) {
+            return r.catalog_id === i.catalog_id && r.customer_id === me.id;
+          });
+        });
+        var reviewLink = items.length
+          ? `<a class="btn-soft" href="customer-ulasan.html${target ? '?produk=' + target.catalog_id : ''}"><i class="bi bi-chat-square-text"></i> ${target ? 'Beri Ulasan' : 'Kelola Ulasan'}</a>`
+          : '';
         return `
         <div class="panel panel-pad mb-4">
           <div class="order-head mb-3">
             <div><div class="cell-title" style="font-size:16px">Pesanan #${o.id}</div>
             <div class="cell-sub">${e(S.fmtDate(o.created_at))}</div></div>
-            ${U.statusBadge(o.status)}
+            <div class="d-flex align-items-center gap-2 flex-wrap">${reviewLink}${U.statusBadge(o.status)}</div>
           </div>
           <div class="table-responsive">
             <table class="table table-them align-middle mb-0">
@@ -325,7 +342,7 @@
   };
 
   /* ============ ULASAN ============ */
-  V.reviews = function () {
+  V.reviews = function (query) {
     var me = S.currentUser();
     var mine = S.state.reviews.filter(function (r) { return r.customer_id === me.id; })
       .sort(function (a, b) { return b.created_at.localeCompare(a.created_at); })
@@ -407,6 +424,11 @@
       title: 'Ulasan Saya', nav: 'customer', active: 'customer-ulasan.html', content: html,
       after: function (root) {
         var f = root.querySelector('[data-form="ulasan"]');
+        if (f && query && query.produk) {
+          var preId = Number(query.produk);
+          var preSel = f.querySelector('[name=catalog_id]');
+          if (preSel && preSel.querySelector('option[value="' + preId + '"]')) preSel.value = String(preId);
+        }
         if (f) f.onsubmit = function (ev) {
           ev.preventDefault();
           var catalogId = Number(f.querySelector('[name=catalog_id]').value);
@@ -465,6 +487,10 @@
             <input type="text" name="phone" class="form-control" value="${e(akun.phone)}" placeholder="08xx-xxxx-xxxx" /></div>
           <div class="col-md-6"><label class="form-label">Alamat Pengiriman</label>
             <input type="text" name="address" class="form-control" value="${e(akun.address)}" placeholder="Alamat lengkap" /></div>
+          <div class="col-md-6"><label class="form-label">Password Baru (opsional)</label>
+            <input type="password" name="newpw" class="form-control" minlength="8" autocomplete="new-password"
+              placeholder="Kosongkan jika tidak diganti" />
+            <div class="pw-rules" style="margin-top:5px"><span>min. 8</span><span>ada huruf</span><span>ada angka</span></div></div>
           <div class="col-12 d-flex gap-2 flex-wrap">
             <button class="btn-accent" type="submit"><i class="bi bi-check2-circle me-1"></i> Simpan Perubahan</button>
             <a class="btn-soft text-decoration-none" href="${HERE}"><i class="bi bi-x-lg me-1"></i> Batal</a>
@@ -574,9 +600,18 @@
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return showError('Format email tidak valid. Contoh: nama@email.com', emailF);
             var dup = S.state.users.find(function (u) { return u.email.toLowerCase() === email && u.id !== akun.id; });
             if (dup) return showError('Email sudah digunakan akun lain.', emailF);
+            var npwF = profil.querySelector('[name=newpw]');
+            var npw = npwF ? npwF.value : '';
+            if (npw && (npw.length < 8 || !/[A-Za-z]/.test(npw) || !/[0-9]/.test(npw))) {
+              return showError('Password minimal 8 karakter dan harus mengandung huruf dan angka.', npwF);
+            }
+            if (npw && npw === akun.password) {
+              return showError('Password baru tidak boleh sama dengan password lama.', npwF);
+            }
             akun.name = name; akun.email = email;
             akun.phone = profil.querySelector('[name=phone]').value.trim();
             akun.address = profil.querySelector('[name=address]').value.trim();
+            if (npw) akun.password = npw;
             S.save();
             U.flash('success', 'Data akun berhasil diperbarui.');
             location.href = HERE;

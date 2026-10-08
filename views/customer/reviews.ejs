@@ -25,7 +25,7 @@
           <select name="catalog_id" class="form-select" required>
             <option value="">— Pilih produk katalog —</option>
             <% candidates.forEach(function (c) { %>
-              <option value="<%= c.catalog_id %>"><%= c.name %> — <%= c.jenis %><%= c.varietas ? ' · ' + c.varietas : '' %></option>
+              <option value="<%= c.catalog_id %>" <%= (preselect && preselect === c.catalog_id) ? 'selected' : '' %>><%= c.name %> — <%= c.jenis %><%= c.varietas ? ' · ' + c.varietas : '' %></option>
             <% }) %>
           </select>
         </div>

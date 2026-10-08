@@ -549,8 +549,9 @@
       counts[s] = S.state.orders.filter(function (o) { return o.status === s; }).length;
     });
 
-    var html = U.pageHead('Pesanan', 'Lihat data pesanan dan perbarui statusnya') +
-      U.demoBanner('Versi prototipe UI — <b>pembuatan pesanan & checkout dinonaktifkan</b>. Data pesanan di bawah adalah data demo.') + `
+    var html = U.pageHead('Pesanan', 'Lihat data pesanan, buat pesanan baru, dan perbarui statusnya',
+      '<a class="btn-accent" href="admin-pesanan-tambah.html"><i class="bi bi-plus-lg me-1"></i> Buat Pesanan</a>') +
+      U.demoBanner('Versi prototipe UI — <b>checkout customer dinonaktifkan</b>; pesanan dapat dibuat admin. Data disimpan di browser ini.') + `
       <div class="panel" style="margin-bottom:18px">
         <div class="panel-pad d-flex flex-wrap gap-3 justify-content-between align-items-center">
           <div class="pill-tabs">
@@ -572,6 +573,7 @@
                 <td><b>#${o.id}</b></td>
                 <td class="cell-sub">${e(S.fmtDate(o.created_at))}</td>
                 <td><div class="cell-title">${e(o.customer_name)}</div>
+                  ${o.metode ? `<div class="cell-sub"><i class="bi bi-credit-card me-1"></i>${e(o.metode)}${o.alamat ? ' · ' + e(o.alamat) : ''}</div>` : ''}
                   ${o.note ? `<div class="cell-sub"><i class="bi bi-sticky me-1"></i>${e(o.note)}</div>` : ''}</td>
                 <td style="max-width:280px">${items.map((i, idx) =>
                   `<div class="cell-sub">${idx + 1}. ${e(i.item_name)} <span class="qty-pill">×${i.qty}</span></div>`).join('')}</td>
@@ -621,6 +623,12 @@
             </table>
           </div>
           ${o.note ? `<div class="panel-pad pt-0"><div class="note-box"><i class="bi bi-sticky me-1"></i> <b>Catatan:</b> ${e(o.note)}</div></div>` : ''}
+          <div class="panel-pad pt-0 pb-3">
+            <table class="table table-sm mb-0" style="font-size:13.5px">
+              <tr><td class="text-muted-2">Alamat Pengiriman</td><td class="text-end"><b>${e(o.alamat || '-')}</b></td></tr>
+              <tr><td class="text-muted-2">Metode Pembayaran</td><td class="text-end"><b>${e(o.metode || '-')}</b></td></tr>
+            </table>
+          </div>
         </div>
         <div class="panel panel-pad">
           <div class="panel-title"><i class="bi bi-person"></i> Informasi Customer</div>
@@ -658,6 +666,146 @@
           S.save();
           U.flash('success', `Status pesanan #${o.id} diperbarui menjadi "${S.statusInfo(o.status).label}".`);
           App.render();
+        };
+      }
+    };
+  };
+
+  /* ============ BUAT PESANAN (admin — UC24) ============ */
+  V.orderNew = function () {
+    var customers = S.state.users.filter(function (u) { return u.role === 'customer'; });
+    var cat = S.activeCatalog();
+    var html = U.pageHead('Buat Pesanan', 'Isi data pesanan untuk customer',
+      '<a class="link-plain" href="admin-pesanan.html"><i class="bi bi-arrow-left"></i> Kembali ke daftar pesanan</a>') + `
+      <form data-form="pesanan" class="row g-3">
+        <div class="col-12"><div id="formError" role="alert"></div></div>
+        <div class="col-lg-7"><div class="panel panel-pad h-100">
+          <div class="panel-title"><i class="bi bi-cart-plus"></i> Item Pesanan</div>
+          <div class="panel-sub">Pilih produk katalog dan jumlahnya — stok otomatis berkurang</div>
+          <div id="itemRows"></div>
+          <button type="button" class="btn-soft mt-2" id="addRowBtn"><i class="bi bi-plus-lg"></i> Tambah Item</button>
+          <div class="d-flex justify-content-between align-items-center mt-4 pt-3" style="border-top:2px dashed #e4dafb">
+            <div class="fw-bold">Total</div>
+            <div class="price-tag" style="font-size:20px" id="totalDisplay">Rp 0</div>
+          </div>
+        </div></div>
+        <div class="col-lg-5"><div class="panel panel-pad h-100">
+          <div class="panel-title"><i class="bi bi-person"></i> Customer & Data Pengiriman</div>
+          <div class="panel-sub">Pesanan langsung berstatus <b>Menunggu</b></div>
+          <div class="mb-3"><label class="form-label">Customer *</label>
+            <select name="customer_id" class="form-select" required>
+              <option value="">— Pilih customer —</option>
+              ${customers.map(u => `<option value="${u.id}">${e(u.name)} (${e(u.email)})</option>`).join('')}
+            </select></div>
+          <div class="mb-3"><label class="form-label">Alamat Pengiriman</label>
+            <input type="text" name="alamat" class="form-control" placeholder="Jl., kecamatan, kota (opsional)" /></div>
+          <div class="mb-3"><label class="form-label">Metode Pembayaran *</label>
+            <select name="metode" class="form-select" required>
+              <option value="">— Pilih metode —</option>
+              <option value="Transfer Bank">Transfer Bank</option>
+              <option value="QRIS">QRIS</option>
+            </select></div>
+          <div class="mb-3"><label class="form-label">Catatan</label>
+            <textarea name="note" class="form-control" rows="3" placeholder="Catatan opsional untuk pesanan ini..."></textarea></div>
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn-accent" type="submit"><i class="bi bi-check2-circle me-1"></i> Simpan Pesanan</button>
+            <a class="btn-soft text-decoration-none" href="admin-pesanan.html"><i class="bi bi-x-lg me-1"></i> Batal</a>
+          </div>
+        </div></div>
+      </form>`;
+
+    return {
+      title: 'Buat Pesanan', nav: 'admin', active: 'admin-pesanan.html', content: html,
+      after: function (root) {
+        var rowsBox = root.querySelector('#itemRows');
+        var totalEl = root.querySelector('#totalDisplay');
+        var errBox = root.querySelector('#formError');
+
+        function rowHTML() {
+          return '<div class="d-flex gap-2 mb-2 item-row" style="flex-wrap:wrap">' +
+            '<select name="catalog_id" class="form-select" style="flex:2;min-width:220px" required>' +
+            '<option value="">— Pilih produk katalog —</option>' +
+            cat.map(c => '<option value="' + c.catalog_id + '">' + e(c.name) + ' — ' + e(S.rp(c.price)) + ' (stok ' + c.stock + ')</option>').join('') +
+            '</select>' +
+            '<input type="number" name="qty" class="form-control" style="max-width:96px" min="1" value="1" required />' +
+            '<button type="button" class="btn-icon b-del" title="Hapus baris"><i class="bi bi-x-lg"></i></button>' +
+            '</div>';
+        }
+        function recalc() {
+          var total = 0;
+          rowsBox.querySelectorAll('.item-row').forEach(function (row) {
+            var cid = Number(row.querySelector('select').value);
+            var qty = parseInt(row.querySelector('input[name=qty]').value, 10) || 0;
+            var c = cat.find(x => x.catalog_id === cid);
+            if (c && qty > 0) total += c.price * qty;
+          });
+          totalEl.textContent = S.rp(total);
+        }
+        function bindRow(row) {
+          row.querySelector('.b-del').onclick = function () {
+            if (rowsBox.querySelectorAll('.item-row').length <= 1) return;
+            row.parentNode.removeChild(row);
+            recalc();
+          };
+          row.querySelector('select').onchange = recalc;
+          row.querySelector('input[name=qty]').oninput = recalc;
+        }
+        function showErrorRow(msg) {
+          if (errBox) errBox.innerHTML = '<div class="alert alert-danger" role="alert">' + e(msg) + '</div>';
+          U.toast(msg, 'err');
+        }
+        rowsBox.innerHTML = rowHTML();
+        rowsBox.querySelectorAll('.item-row').forEach(bindRow);
+        recalc();
+        root.querySelector('#addRowBtn').onclick = function () {
+          rowsBox.insertAdjacentHTML('beforeend', rowHTML());
+          bindRow(rowsBox.lastElementChild);
+          recalc();
+        };
+
+        var f = root.querySelector('[data-form="pesanan"]');
+        f.onsubmit = function (ev) {
+          ev.preventDefault();
+          if (errBox) errBox.innerHTML = '';
+          var customerId = Number(f.querySelector('[name=customer_id]').value);
+          var customer = S.userById(customerId);
+          if (!customer || customer.role !== 'customer') return showErrorRow('Customer harus dipilih.');
+          var metode = f.querySelector('[name=metode]').value;
+          if (!metode) return showErrorRow('Metode pembayaran wajib dipilih.');
+          var lines = [];
+          rowsBox.querySelectorAll('.item-row').forEach(function (row) {
+            var cid = Number(row.querySelector('select').value);
+            var qty = parseInt(row.querySelector('input[name=qty]').value, 10) || 0;
+            if (!cid || qty <= 0) return;
+            var c = cat.find(x => x.catalog_id === cid);
+            if (c) lines.push({ c: c, qty: qty });
+          });
+          if (!lines.length) return showErrorRow('Pesanan minimal berisi 1 item.');
+          for (var i = 0; i < lines.length; i++) {
+            if (lines[i].c.stock < lines[i].qty) {
+              return showErrorRow('Stok "' + lines[i].c.name + '" tidak mencukupi (tersisa ' + lines[i].c.stock + ').');
+            }
+          }
+          var total = lines.reduce(function (s2, l) { return s2 + l.c.price * l.qty; }, 0);
+          var order = {
+            id: S.nextId(S.state.orders), customer_id: customer.id, customer_name: customer.name,
+            total: total, status: 'pending', note: f.querySelector('[name=note]').value.trim(),
+            alamat: f.querySelector('[name=alamat]').value.trim(), metode: metode,
+            created_at: S.now(0, 0), updated_at: S.now(0, 0)
+          };
+          S.state.orders.push(order);
+          lines.forEach(function (l) {
+            S.state.order_items.push({
+              id: S.nextId(S.state.order_items), order_id: order.id, catalog_id: l.c.catalog_id,
+              item_name: l.c.name, price: l.c.price, qty: l.qty
+            });
+            var catRow = S.catalogById(l.c.catalog_id);
+            var orchid = catRow ? S.orchidById(catRow.orchid_id) : null;
+            if (orchid) orchid.stock -= l.qty;
+          });
+          S.save();
+          U.flash('success', 'Pesanan #' + order.id + ' untuk ' + customer.name + ' berhasil dibuat.');
+          U.go('admin-pesanan.html');
         };
       }
     };

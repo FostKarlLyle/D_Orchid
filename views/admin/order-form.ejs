@@ -39,6 +39,18 @@
         </select>
       </div>
       <div class="mb-3">
+        <label class="form-label">Alamat Pengiriman</label>
+        <input type="text" name="alamat_pengiriman" class="form-control" placeholder="Jl., kecamatan, kota (opsional)" />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Metode Pembayaran *</label>
+        <select name="metode_pembayaran" class="form-select" required>
+          <option value="">— Pilih metode —</option>
+          <option value="Transfer Bank">Transfer Bank</option>
+          <option value="QRIS">QRIS</option>
+        </select>
+      </div>
+      <div class="mb-3">
         <label class="form-label">Catatan</label>
         <textarea name="note" class="form-control" rows="3" placeholder="Catatan opsional untuk pesanan ini..."></textarea>
       </div>

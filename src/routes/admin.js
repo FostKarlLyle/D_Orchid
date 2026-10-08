@@ -403,12 +403,21 @@ router.post('/pesanan/tambah', (req, res) => {
 
   const total = items.reduce((s, it) => s + it.price * it.qty, 0);
   const note = String(req.body.note || '').trim();
+  const alamat = String(req.body.alamat_pengiriman || '').trim();
+  const metode = String(req.body.metode_pembayaran || '').trim();
+  if (!metode) {
+    flash(req, 'danger', 'Metode pembayaran wajib dipilih.');
+    return res.redirect('/admin/pesanan/tambah');
+  }
 
   db.exec('BEGIN');
   try {
     const info = db
-      .prepare('INSERT INTO orders (customer_id, customer_name, total, status, note) VALUES (?, ?, ?, ?, ?)')
-      .run(customer.id, customer.name, total, 'pending', note);
+      .prepare(
+        `INSERT INTO orders (customer_id, customer_name, total, status, note, alamat_pengiriman, metode_pembayaran)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`
+      )
+      .run(customer.id, customer.name, total, 'pending', note, alamat, metode);
     const orderId = info.lastInsertRowid;
     const insItem = db.prepare(
       'INSERT INTO order_items (order_id, catalog_id, item_name, price, qty) VALUES (?, ?, ?, ?, ?)'

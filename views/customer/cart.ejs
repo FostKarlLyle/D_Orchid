@@ -118,24 +118,28 @@ document.addEventListener('DOMContentLoaded', function () {
   function changeQty(id, delta) {
     var cart = DOrchid.readCart();
     var c = catalogMap[id];
+    var capped = false;
     cart.forEach(function (i) {
       if (i.id === id) {
         i.qty += delta;
         if (i.qty < 1) i.qty = 1;
         if (c && i.qty > c.stock) {
           i.qty = c.stock;
-          showToast('Stok tidak mencukupi (tersisa ' + c.stock + ').', 'err');
+          capped = true;
         }
       }
     });
     DOrchid.writeCart(cart);
+    if (capped) showToast('Stok tidak mencukupi (tersisa ' + c.stock + ').', 'err');
+    else showToast('Pesanan berhasil diperbarui.');
     render();
   }
 
   function removeItem(id) {
+    if (!confirm('Apakah Anda yakin menghapus pesanan ini?')) return;
     var cart = DOrchid.readCart().filter(function (i) { return i.id !== id; });
     DOrchid.writeCart(cart);
-    showToast('Item dihapus dari keranjang.');
+    showToast('Pesanan berhasil dihapus.');
     render();
   }
 

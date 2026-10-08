@@ -44,6 +44,12 @@
         <div class="note-box"><i class="bi bi-sticky me-1"></i> <b>Catatan:</b> <%= order.note %></div>
       </div>
     <% } %>
+    <div class="panel-pad pt-0 pb-3">
+      <table class="table table-sm mb-0" style="font-size:13.5px">
+        <tr><td class="text-muted-2">Alamat Pengiriman</td><td class="text-end"><b><%= order.alamat_pengiriman || '-' %></b></td></tr>
+        <tr><td class="text-muted-2">Metode Pembayaran</td><td class="text-end"><b><%= order.metode_pembayaran || '-' %></b></td></tr>
+      </table>
+    </div>
   </div>
 
   <div class="panel panel-pad">
